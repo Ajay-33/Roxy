@@ -1,0 +1,16 @@
+{
+  "name": "roxy",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Private local-first personal context engine",
+  "packageManager": "pnpm@11.9.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "check": "pnpm run lint && pnpm run typecheck && pnpm run test",
+    "lint": "pnpm --filter './apps/**' --filter './packages/**' -r --if-present lint",
+    "test": "pnpm --filter './apps/**' --filter './packages/**' -r --if-present test",
+    "typecheck": "pnpm --filter './apps/**' --filter './packages/**' -r --if-present typecheck"
+  }
+}

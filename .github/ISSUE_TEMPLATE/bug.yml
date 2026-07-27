@@ -1,0 +1,39 @@
+name: Roxy bug
+description: Report a reproducible issue without personal data
+title: "[BUG] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: "Never include real notifications, coordinates, credentials, or personal exports."
+  - type: textarea
+    id: observed
+    attributes:
+      label: Observed behavior
+      description: Use synthetic or redacted evidence.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: dropdown
+    id: risk
+    attributes:
+      label: Highest risk
+      options:
+        - Normal functionality
+        - Battery
+        - Data loss or duplication
+        - Privacy or security
+    validations:
+      required: true
+

@@ -1,0 +1,47 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.keystore
+*.jks
+*.pem
+local.properties
+
+# Personal and exported data
+data/
+exports/
+backups/
+*.sqlite
+*.sqlite3
+*.db
+*.log
+
+# JavaScript
+node_modules/
+.pnpm-store/
+.next/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Android / Gradle
+.gradle/
+build/
+**/build/
+.cxx/
+captures/
+*.apk
+*.aab
+
+# IDE / OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Temporary tooling
+.cache/
+.tmp/
+tmp/
+
