@@ -153,6 +153,14 @@ private fun RoxyApp(database: RoxyDatabase? = null, pairingStore: PairingStore? 
                     Text("Pending uploads: $pendingCount")
                     Text(queueHealth)
                     Button(onClick = { refreshPendingCount() }) { Text("Refresh upload status") }
+                    Button(onClick = {
+                        if (pairingStore?.read() != null) {
+                            SyncScheduler.enqueue(context ?: return@Button)
+                            pairingStatus = "Sync scheduled; it will run when network is available"
+                        } else {
+                            pairingStatus = "Connect Roxy before syncing totals"
+                        }
+                    }) { Text("Sync now") }
                 }
                 Section("4. Connection", "Pair once with your Roxy server. The credential is encrypted on this phone.") {
                     OutlinedTextField(value = endpoint, onValueChange = { endpoint = it }, label = { Text("Roxy server address") }, modifier = Modifier.fillMaxWidth())
@@ -163,12 +171,6 @@ private fun RoxyApp(database: RoxyDatabase? = null, pairingStore: PairingStore? 
                         .onSuccess { pairingStatus = "Paired; sync is scheduled only when network is available" }
                         .onFailure { pairingStatus = "Pairing needs an http(s) endpoint and a 32+ character credential" }
                     }) { Text("Save connection") }
-                    Button(onClick = {
-                    if (pairingStore?.read() != null) {
-                        SyncScheduler.enqueue(context ?: return@Button)
-                        pairingStatus = "Sync scheduled; it will run when network is available"
-                    }
-                    }) { Text("Sync now") }
                     Text(pairingStatus)
                 }
             }
