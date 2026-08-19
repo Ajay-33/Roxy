@@ -17,6 +17,8 @@ export function buildApp(deviceApiKey: string, eventStore: EventStore & Partial<
     if (deviceApiKey.length < 32) throw new Error("ROXY_DEVICE_API_KEY must be at least 32 characters");
     const app = Fastify({ bodyLimit: maxBodyBytes, logger: false });
 
+    app.get("/health", async () => ({ status: "ok" }));
+
     app.post("/v1/sync/events", async (request, reply) => {
         if (!credentialsMatch(request.headers.authorization, deviceApiKey)) {
             return reply.code(401).send({ error: "unauthorized" });

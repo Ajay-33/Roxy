@@ -19,6 +19,7 @@ This is an ordered index, not a detailed task specification. Expand only the nex
 - T-0203 Incremental cursor with overlap and deduplication.
 - T-0204 On-device 15-minute aggregation.
 - T-0205 Server daily app totals and seeded query tests.
+- T-0207 Hosted validation environment and migration runner.
 - T-0206 Three-day physical-phone accuracy/battery validation.
 
 ## Phase 3 — Timeline and exact answers
@@ -72,4 +73,3 @@ This is an ordered index, not a detailed task specification. Expand only the nex
 - T-0801–T-0899 Explainable pattern engine after 2–4 weeks of history.
 - T-0901–T-0999 Shadow suggestions, feedback, cooldowns, and quiet hours.
 - T-1001+ Optional connectors, each with a separate privacy review.
-

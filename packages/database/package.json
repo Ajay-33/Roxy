@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "exports": "./src/index.ts",
-  "scripts": { "typecheck": "tsc --noEmit" },
+  "scripts": { "typecheck": "tsc --noEmit", "test": "node --test src/*.test.ts" },
   "dependencies": { "@roxy/contracts": "workspace:*", "pg": "^8.14.1" },
   "devDependencies": { "@types/node": "^22.15.3", "@types/pg": "^8.11.11", "typescript": "^5.8.2" }
 }

@@ -1,6 +1,6 @@
 # Now: Phase 2 — App Usage
 
-T-0205 is complete. T-0206 remains pending a hosted deployment prerequisite and its required three consecutive calendar-day validation.
+T-0207 is in progress: Render Free hosts the API, Supabase Free hosts PostgreSQL, and a 10-minute external health probe keeps the validation API responsive. T-0206 does not begin until T-0207 provides a migrated hosted endpoint and verified paired-device sync path.
 
 ## Phase 2 queue
 
@@ -11,7 +11,8 @@ T-0205 is complete. T-0206 remains pending a hosted deployment prerequisite and 
 | 3 | T-0203 | Incremental cursor with overlap and deduplication | T-0202 | Done |
 | 4 | T-0204 | On-device 15-minute aggregation | T-0203 | Done |
 | 5 | T-0205 | Server daily app totals and seeded query tests | T-0204 | Done |
-| 6 | T-0206 | Three-day physical-phone accuracy/battery validation | T-0205 | Pending |
+| 6 | T-0207 | Hosted validation environment and migration runner | T-0205 | In progress |
+| 7 | T-0206 | Three-day physical-phone accuracy/battery validation | T-0205, T-0207 | Pending |
 
 ## Phase 2 exit gate
 

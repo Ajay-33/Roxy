@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: roxy-validation-api
+    runtime: node
+    plan: free
+    buildCommand: pnpm install --frozen-lockfile
+    startCommand: pnpm --filter @roxy/api dev
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: ROXY_DEVICE_API_KEY
+        sync: false
