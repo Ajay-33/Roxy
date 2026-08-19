@@ -2,6 +2,9 @@
   "name": "@roxy/contracts",
   "version": "0.0.0",
   "private": true,
-  "type": "module"
+  "type": "module",
+  "exports": "./src/index.ts",
+  "scripts": { "typecheck": "tsc --noEmit", "test": "node --test src/*.test.ts" },
+  "dependencies": { "zod": "^3.24.2" },
+  "devDependencies": { "@types/node": "^22.15.3", "typescript": "^5.8.2" }
 }
-

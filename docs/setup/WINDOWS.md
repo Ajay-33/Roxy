@@ -9,16 +9,18 @@
 | pnpm | 11.9.0 |
 | Java | Amazon Corretto 17.0.17 |
 | Docker CLI | 28.0.4 |
-| Android `adb` | Not found on `PATH` |
+| Android SDK command-line tools | 15859902 (project-local, ignored) |
+| Android Platform Tools / `adb` | 37.0.1 at `.android-sdk/platform-tools/adb.exe` |
+| Android SDK Platform / Build Tools | API 35 / 35.0.0 |
 
 Docker reported that its user config file could not be read in the current restricted environment. Verify Docker Desktop normally before the database task.
 
-## Before T-0002
+## T-0002 phone connection
 
-- Install/open Android Studio with Android SDK Platform Tools.
-- Confirm `adb version` works. If installed but missing from `PATH`, use Android Studio’s SDK path rather than reinstalling.
+- The project-local Android SDK is intentionally ignored. Use `.android-sdk/platform-tools/adb.exe`, or set it on `PATH` in your own shell.
+- Confirm `adb version` works.
 - Enable Developer options and USB debugging on the target phone.
-- Run `adb devices` and accept the phone’s authorization prompt.
+- Run `adb devices` and accept the phone’s authorization prompt. This was verified for iQOO I2301 on 2026-08-19.
 - Record phone details in `docs/setup/TARGET-PHONE.md`.
 
 ## Before T-0003
@@ -42,4 +44,3 @@ OEM battery-management settings:
 Baseline test dates:
 Notes:
 ```
-

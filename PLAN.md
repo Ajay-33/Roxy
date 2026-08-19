@@ -592,17 +592,17 @@ Run focused tests, summarize changed files, and give the exact manual test.
 
 Fill these in when work begins:
 
-- Target phone model/manufacturer: **TBD**
-- Android version/API level: **TBD**
-- Google Play services available: **TBD**
-- Development machine can run Docker continuously: **TBD**
-- First deployment: **local only / private home server / managed cloud**
-- Notification default: **metadata only (recommended) / selected-app text**
-- Location default: **balanced (recommended) / trip mode only**
-- Raw location retention: **30 days proposed**
-- Raw notification-text retention: **7 days proposed**
+- Target phone model/manufacturer: **iQOO Z7 Pro 5G (I2301)**
+- Android version/API level: **Android 15 / API 35**
+- Google Play services available: **Yes**
+- Development machine can run Docker continuously: **Yes; Docker Engine 28.0.4 verified.**
+- First deployment: **Managed cloud later; local development environment first**
+- Notification default: **Metadata only**
+- Location default: **Balanced. Trip mode is user-started, visibly active, and automatically stops after 4 hours.**
+- Raw location retention: **30 days**
+- Raw notification-text retention: **7 days**
 - AI provider and model: **choose from current stable models at implementation time**
-- Monthly budget ceiling: **TBD**
+- Monthly budget ceiling: **₹0; do not introduce paid services or plans.**
 
 ---
 

@@ -25,6 +25,7 @@ coverage/
 *.tsbuildinfo
 
 # Android / Gradle
+.android-sdk/
 .gradle/
 build/
 **/build/
@@ -44,4 +45,3 @@ Thumbs.db
 .cache/
 .tmp/
 tmp/
-

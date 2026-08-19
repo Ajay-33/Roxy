@@ -9,8 +9,8 @@
   },
   "scripts": {
     "check": "pnpm run lint && pnpm run typecheck && pnpm run test",
-    "lint": "pnpm --filter './apps/**' --filter './packages/**' -r --if-present lint",
-    "test": "pnpm --filter './apps/**' --filter './packages/**' -r --if-present test",
-    "typecheck": "pnpm --filter './apps/**' --filter './packages/**' -r --if-present typecheck"
+    "lint": "pnpm -r --if-present lint",
+    "test": "pnpm -r --if-present test",
+    "typecheck": "pnpm -r --if-present typecheck"
   }
 }

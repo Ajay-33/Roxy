@@ -1,6 +1,9 @@
 # Roxy Android
 
-Reserved for the native Kotlin + Jetpack Compose application. Generate the Gradle project during Phase 0 task T-0002 using then-current stable Android tooling.
+Native Kotlin + Jetpack Compose app. Phase 0 includes a deliberately static, zero-permission diagnostic shell; it does not collect, store, or upload data.
+
+## Build
+
+With the project-local SDK installed, run `gradlew.bat assembleDebug` from this folder. The resulting APK is `app/build/outputs/apk/debug/app-debug.apk`.
 
 Planned responsibilities: permissions, collectors, Room queue, WorkManager sync, diagnostics, timeline, chat, and controls.
-
