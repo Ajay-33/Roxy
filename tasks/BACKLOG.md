@@ -20,6 +20,7 @@ This is an ordered index, not a detailed task specification. Expand only the nex
 - T-0204 On-device 15-minute aggregation.
 - T-0205 Server daily app totals and seeded query tests.
 - T-0207 Hosted validation environment and migration runner.
+- T-0208 Simplify diagnostic and pairing UI before three-day validation.
 - T-0206 Three-day physical-phone accuracy/battery validation.
 
 ## Phase 3 — Timeline and exact answers

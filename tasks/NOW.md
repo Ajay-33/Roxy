@@ -1,6 +1,6 @@
 # Now: Phase 2 — App Usage
 
-T-0207 is in progress: Render Free hosts the API, Supabase Free hosts PostgreSQL, and a 10-minute external health probe keeps the validation API responsive. T-0206 does not begin until T-0207 provides a migrated hosted endpoint and verified paired-device sync path.
+T-0208 is in progress: simplify the owner-visible diagnostics and pairing screen before the three-day T-0206 validation starts. T-0207 hosted validation is complete.
 
 ## Phase 2 queue
 
@@ -11,8 +11,9 @@ T-0207 is in progress: Render Free hosts the API, Supabase Free hosts PostgreSQL
 | 3 | T-0203 | Incremental cursor with overlap and deduplication | T-0202 | Done |
 | 4 | T-0204 | On-device 15-minute aggregation | T-0203 | Done |
 | 5 | T-0205 | Server daily app totals and seeded query tests | T-0204 | Done |
-| 6 | T-0207 | Hosted validation environment and migration runner | T-0205 | In progress |
-| 7 | T-0206 | Three-day physical-phone accuracy/battery validation | T-0205, T-0207 | Pending |
+| 6 | T-0207 | Hosted validation environment and migration runner | T-0205 | Done |
+| 7 | T-0208 | Simplify diagnostic and pairing UI | T-0207 | In progress |
+| 8 | T-0206 | Three-day physical-phone accuracy/battery validation | T-0205, T-0207 | Pending |
 
 ## Phase 2 exit gate
 
