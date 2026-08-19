@@ -1,5 +1,6 @@
 import { readFile, readdir } from "node:fs/promises";
 import { Pool } from "pg";
+import { postgresConnectionString } from "./event-store.ts";
 
 export type SqlMigration = { id: string; sql: string };
 export type MigrationQueryResult<Row = { id: string }> = { rows: Row[] };
@@ -33,7 +34,7 @@ export async function applyMigrations(client: MigrationClient, migrations: reado
 }
 
 export async function migrateDatabase(connectionString: string, migrations: readonly SqlMigration[]): Promise<void> {
-    const pool = new Pool({ connectionString });
+    const pool = new Pool({ connectionString: postgresConnectionString(connectionString) });
     try {
         await applyMigrations(pool, migrations);
     } finally {

@@ -6,9 +6,17 @@ export interface EventStore { insert(event: EventEnvelopeV1): Promise<InsertResu
 export type DailyAppTotal = { packageName: string; durationMillis: number };
 export interface UsageTotalsStore { dailyAppTotals(deviceId: string, dayStart: string, dayEnd: string): Promise<DailyAppTotal[]>; }
 
+export function postgresConnectionString(connectionString: string): string {
+    const url = new URL(connectionString);
+    if (url.searchParams.get("sslmode") === "require" && !url.searchParams.has("uselibpqcompat")) {
+        url.searchParams.set("uselibpqcompat", "true");
+    }
+    return url.toString();
+}
+
 export class PostgresEventStore implements EventStore, UsageTotalsStore {
     private readonly pool: Pool;
-    constructor(connectionString: string) { this.pool = new Pool({ connectionString }); }
+    constructor(connectionString: string) { this.pool = new Pool({ connectionString: postgresConnectionString(connectionString) }); }
     async insert(event: EventEnvelopeV1): Promise<InsertResult> {
         const result = await this.pool.query(
             `INSERT INTO events (id, device_id, schema_version, event_type, occurred_at, recorded_at, observed_timezone, source, sensitivity, payload, confidence, is_derived)
