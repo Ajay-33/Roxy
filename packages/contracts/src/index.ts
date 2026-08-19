@@ -1,1 +1,1 @@
-export { eventEnvelopeV1Schema, type EventEnvelopeV1 } from "./event-envelope.js";
+export { eventEnvelopeV1Schema, type EventEnvelopeV1 } from "./event-envelope.ts";

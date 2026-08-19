@@ -3,3 +3,8 @@ packages:
   - "apps/dashboard"
   - "packages/*"
 
+onlyBuiltDependencies:
+  - esbuild
+
+allowBuilds:
+  esbuild: true
