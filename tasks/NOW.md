@@ -1,6 +1,6 @@
 # Now: Phase 2 — App Usage
 
-T-0208 is in progress: simplify the owner-visible diagnostics and pairing screen before the three-day T-0206 validation starts. T-0207 hosted validation is complete.
+T-0206 is in progress: three consecutive real calendar days of app-usage and battery validation. T-0207 hosted validation and T-0208 UI cleanup are complete.
 
 ## Phase 2 queue
 
@@ -12,8 +12,8 @@ T-0208 is in progress: simplify the owner-visible diagnostics and pairing screen
 | 4 | T-0204 | On-device 15-minute aggregation | T-0203 | Done |
 | 5 | T-0205 | Server daily app totals and seeded query tests | T-0204 | Done |
 | 6 | T-0207 | Hosted validation environment and migration runner | T-0205 | Done |
-| 7 | T-0208 | Simplify diagnostic and pairing UI | T-0207 | In progress |
-| 8 | T-0206 | Three-day physical-phone accuracy/battery validation | T-0205, T-0207 | Pending |
+| 7 | T-0208 | Simplify diagnostic and pairing UI | T-0207 | Done |
+| 8 | T-0206 | Three-day physical-phone accuracy/battery validation | T-0205, T-0207 | In progress |
 
 ## Phase 2 exit gate
 

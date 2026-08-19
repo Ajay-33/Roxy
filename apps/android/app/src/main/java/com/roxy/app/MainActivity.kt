@@ -7,11 +7,15 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -24,7 +28,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -58,7 +64,7 @@ private fun RoxyApp(database: RoxyDatabase? = null, pairingStore: PairingStore? 
     var queueHealth by remember { mutableStateOf("Queue health has not been checked") }
     var endpoint by remember { mutableStateOf(pairingStore?.read()?.endpoint ?: "http://127.0.0.1:4100") }
     var credential by remember { mutableStateOf("") }
-    var pairingStatus by remember { mutableStateOf(if (pairingStore?.read() == null) "Pairing required before sync" else "Paired for local development") }
+    var pairingStatus by remember { mutableStateOf(if (pairingStore?.read() == null) "Connect Roxy before sending totals" else "Connected; ready to sync when needed") }
     var usageAccessAllowed by remember { mutableStateOf(context?.let(UsageAccess::isAllowed) ?: false) }
     var usageQueryStatus by remember { mutableStateOf("No app-usage query has run") }
     var aggregationStatus by remember { mutableStateOf("No app-usage aggregation has run") }
@@ -93,26 +99,18 @@ private fun RoxyApp(database: RoxyDatabase? = null, pairingStore: PairingStore? 
 
     MaterialTheme {
         Surface(modifier = Modifier.fillMaxSize()) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
-            ) {
-                Text(text = "Roxy")
-                Text(text = "Foundation check")
-                Text(text = "No collection is active")
-                Text(text = "App usage access: ${if (usageAccessAllowed) "allowed" else "not allowed"}")
-                Text(text = if (usageAccessAllowed) {
-                    "Usage Access is allowed, but Roxy does not collect app usage yet."
-                } else {
-                    "App-usage collection is off. Allow Usage Access in Android settings before it can be enabled."
-                })
-                Text(text = "When enabled in a later step, Roxy will use it only for on-device app-duration totals. It does not grant access to app content, notifications, keystrokes, the microphone, or camera.")
-                Button(onClick = {
+            Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text("Roxy", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                Text("Private app-usage check", style = MaterialTheme.typography.titleMedium)
+                Text("Roxy only prepares on-device app-duration totals. It never reads app content, notifications, keystrokes, microphone, or camera data.")
+                Section("1. Permission", if (usageAccessAllowed) "App usage access is ready." else "Allow app usage access to continue.") {
+                    Button(onClick = {
                     activity?.startActivity(UsageAccess.settingsIntent())
-                }) { Text("Open Usage Access settings") }
-                Button(onClick = { refreshUsageAccess() }) { Text("Check app usage access") }
-                Button(
+                    }) { Text("Open usage access settings") }
+                    Button(onClick = { refreshUsageAccess() }) { Text("Refresh permission") }
+                }
+                Section("2. Prepare local totals", "Read the previous 24 hours, then make 15-minute totals on this phone.") {
+                    Button(
                     enabled = usageAccessAllowed,
                     onClick = {
                         val queryContext = context ?: return@Button
@@ -123,9 +121,9 @@ private fun RoxyApp(database: RoxyDatabase? = null, pairingStore: PairingStore? 
                             android.os.Handler(android.os.Looper.getMainLooper()).post { usageQueryStatus = status }
                         }
                     },
-                ) { Text("Collect previous 24 hours") }
-                Text(usageQueryStatus)
-                Button(onClick = {
+                    ) { Text("Read previous 24 hours") }
+                    Text(usageQueryStatus)
+                    Button(onClick = {
                     val localDatabase = database ?: return@Button
                     executor.execute {
                         val dao = localDatabase.usageCollectionDao(); val buckets = UsageAggregation.aggregate(dao.observations().map {
@@ -135,9 +133,11 @@ private fun RoxyApp(database: RoxyDatabase? = null, pairingStore: PairingStore? 
                         val bucketCount = dao.bucketCount()
                         android.os.Handler(android.os.Looper.getMainLooper()).post { aggregationStatus = "Stored $bucketCount local 15-minute app-usage buckets; nothing was synced" }
                     }
-                }) { Text("Calculate 15-minute app usage") }
-                Text(aggregationStatus)
-                Button(onClick = {
+                    }) { Text("Create local 15-minute totals") }
+                    Text(aggregationStatus)
+                }
+                Section("3. Send aggregate totals", "Only aggregate duration buckets can be queued for sync.") {
+                    Button(onClick = {
                     val localDatabase = database ?: return@Button
                     val pairing = pairingStore?.read() ?: run {
                         exportStatus = "Pair Roxy before queueing aggregate app usage"
@@ -148,45 +148,41 @@ private fun RoxyApp(database: RoxyDatabase? = null, pairingStore: PairingStore? 
                         refreshPendingCount()
                         android.os.Handler(android.os.Looper.getMainLooper()).post { exportStatus = "Queued $queued aggregate app-usage buckets; raw observations remain on this phone" }
                     }
-                }) { Text("Queue aggregate app usage") }
-                Text(exportStatus)
-                Text(text = "Pending synthetic events: $pendingCount")
-                Text(text = queueHealth)
-                Button(
-                    onClick = {
-                        if (database == null) return@Button
-                        executor.execute {
-                            database.localEventDao().insert(
-                                LocalEventEntity(
-                                    id = newUuidV7(), schemaVersion = 1, deviceId = "local-debug-device",
-                                    eventType = "system.test_event", occurredAtEpochMillis = System.currentTimeMillis(),
-                                    recordedAtEpochMillis = System.currentTimeMillis(), observedTimezone = "Asia/Calcutta",
-                                    source = "android.manual_test", sensitivity = "private", payloadJson = "{\"synthetic\":true}",
-                                    confidence = 1.0, isDerived = false, syncState = SyncState.PENDING,
-                                    rejectionCode = null, createdAtEpochMillis = System.currentTimeMillis(),
-                                ),
-                            )
-                            refreshPendingCount()
-                        }
-                    },
-                ) { Text("Create synthetic test event") }
-                Button(onClick = { refreshPendingCount() }) { Text("Refresh queue") }
-                OutlinedTextField(value = endpoint, onValueChange = { endpoint = it }, label = { Text("Development API endpoint") })
-                OutlinedTextField(value = credential, onValueChange = { credential = it }, label = { Text("One-time device credential") })
-                Button(onClick = {
+                    }) { Text("Queue aggregate totals") }
+                    Text(exportStatus)
+                    Text("Pending uploads: $pendingCount")
+                    Text(queueHealth)
+                    Button(onClick = { refreshPendingCount() }) { Text("Refresh upload status") }
+                }
+                Section("4. Connection", "Pair once with your Roxy server. The credential is encrypted on this phone.") {
+                    OutlinedTextField(value = endpoint, onValueChange = { endpoint = it }, label = { Text("Roxy server address") }, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(value = credential, onValueChange = { credential = it }, label = { Text("Pairing credential") }, modifier = Modifier.fillMaxWidth())
+                    Button(onClick = {
                     if (pairingStore == null) return@Button
                     runCatching { pairingStore.save(endpoint, credential); SyncScheduler.enqueue(context ?: return@Button) }
                         .onSuccess { pairingStatus = "Paired; sync is scheduled only when network is available" }
                         .onFailure { pairingStatus = "Pairing needs an http(s) endpoint and a 32+ character credential" }
-                }) { Text("Save pairing and schedule sync") }
-                Button(onClick = {
+                    }) { Text("Save connection") }
+                    Button(onClick = {
                     if (pairingStore?.read() != null) {
                         SyncScheduler.enqueue(context ?: return@Button)
                         pairingStatus = "Sync scheduled; it will run when network is available"
                     }
-                }) { Text("Sync queued data") }
-                Text(pairingStatus)
+                    }) { Text("Sync now") }
+                    Text(pairingStatus)
+                }
             }
+        }
+    }
+}
+
+@Composable
+private fun Section(title: String, detail: String, content: @Composable ColumnScope.() -> Unit) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text(detail, style = MaterialTheme.typography.bodyMedium)
+            content()
         }
     }
 }
