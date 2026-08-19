@@ -63,6 +63,10 @@ class SyncWorker(context: Context, parameters: WorkerParameters) : CoroutineWork
                 }.distinct()
                 Log.i("RoxySync", "Sync response acknowledged=${acknowledgements.length()} rejected=${rejected.length()} fields=$rejectedFields")
                 healthDao.save((healthDao.read() ?: SyncHealthEntity()).copy(lastSuccessEpochMillis = System.currentTimeMillis(), lastErrorCode = null))
+                if (dao.countWithState(SyncState.PENDING) > 0) {
+                    Log.i("RoxySync", "More queued events remain; scheduling the next batch")
+                    SyncScheduler.enqueue(applicationContext)
+                }
             }.fold(onSuccess = { Result.success() }, onFailure = {
                 healthDao.save((healthDao.read() ?: SyncHealthEntity()).copy(lastErrorCode = "transient_sync_failure"))
                 Log.w("RoxySync", "Sync failed; WorkManager will retry")

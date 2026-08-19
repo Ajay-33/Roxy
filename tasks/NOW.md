@@ -1,22 +1,21 @@
-# Now: Phase 1 — Durable Sync
+# Now: Phase 2 — App Usage
 
-Phase 1 is complete and verified end to end. The next phase is not started until this phase is committed.
+T-0205 is complete. T-0206 remains pending a hosted deployment prerequisite and its required three consecutive calendar-day validation.
 
-## Phase 1 queue
+## Phase 2 queue
 
 | Order | ID | Task | Depends on | Estimate |
 |---:|---|---|---|---:|
-| 1 | T-0101 | Define event envelope v1 in Zod and synthetic fixtures | Phase 0 complete | Done |
-| 2 | T-0102 | Add Android Room event/pending-sync entities | T-0101 | Done |
-| 3 | T-0103 | Persist a manual test event locally | T-0102 | Done |
-| 4 | T-0104 | Add authenticated batch-ingestion endpoint | T-0101, T-0003 | Done |
-| 5 | T-0105 | Add idempotent event insert and per-ID acknowledgment | T-0104 | Done |
-| 6 | T-0106 | Add WorkManager sync with network constraint and backoff | T-0103, T-0105 | Done |
-| 7 | T-0107 | Add queue diagnostics and offline/retry acceptance test | T-0106 | Done |
+| 1 | T-0201 | Usage Access explainer and permission-state UI | Phase 1 complete | Done |
+| 2 | T-0202 | Bounded UsageStats query and normalization fixtures | T-0201 | Done |
+| 3 | T-0203 | Incremental cursor with overlap and deduplication | T-0202 | Done |
+| 4 | T-0204 | On-device 15-minute aggregation | T-0203 | Done |
+| 5 | T-0205 | Server daily app totals and seeded query tests | T-0204 | Done |
+| 6 | T-0206 | Three-day physical-phone accuracy/battery validation | T-0205 | Pending |
 
-## Phase 1 exit gate
+## Phase 2 exit gate
 
-- Versioned contract shared through fixtures.
-- Device authentication and safe logging work.
-- Queue diagnostics show oldest age, counts, last success, and safe error.
-- Backoff creates no rapid wake/network loop.
+- Three real days compared with Digital Wellbeing; discrepancies documented.
+- Reboots, offline periods, midnight, and timezone changes covered.
+- Events are aggregated before upload.
+- Physical-phone battery measurement is in the target or warning band with a tuning decision.

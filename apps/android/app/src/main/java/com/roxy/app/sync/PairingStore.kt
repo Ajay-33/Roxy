@@ -5,6 +5,7 @@ import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
 import java.security.KeyStore
+import java.util.UUID
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.spec.GCMParameterSpec
@@ -18,7 +19,9 @@ class PairingStore(context: Context) {
         require(credential.length >= 32)
         val cipher = Cipher.getInstance("AES/GCM/NoPadding").apply { init(Cipher.ENCRYPT_MODE, key()) }
         preferences.edit().putString("endpoint", endpoint.removeSuffix("/"))
-            .putString("credential", Base64.encodeToString(cipher.iv + cipher.doFinal(credential.toByteArray()), Base64.NO_WRAP)).apply()
+            .putString("credential", Base64.encodeToString(cipher.iv + cipher.doFinal(credential.toByteArray()), Base64.NO_WRAP))
+            .putString("deviceId", deviceId())
+            .apply()
     }
 
     fun read(): Pairing? {
@@ -27,8 +30,12 @@ class PairingStore(context: Context) {
         return runCatching {
             val bytes = Base64.decode(encrypted, Base64.NO_WRAP)
             val cipher = Cipher.getInstance("AES/GCM/NoPadding").apply { init(Cipher.DECRYPT_MODE, key(), GCMParameterSpec(128, bytes.copyOfRange(0, 12))) }
-            Pairing(endpoint, String(cipher.doFinal(bytes.copyOfRange(12, bytes.size))))
+            Pairing(endpoint, String(cipher.doFinal(bytes.copyOfRange(12, bytes.size))), deviceId())
         }.getOrNull()
+    }
+
+    private fun deviceId(): String = preferences.getString("deviceId", null) ?: UUID.randomUUID().toString().also {
+        preferences.edit().putString("deviceId", it).apply()
     }
 
     private fun key(): javax.crypto.SecretKey {
@@ -42,4 +49,4 @@ class PairingStore(context: Context) {
     }
 }
 
-data class Pairing(val endpoint: String, val credential: String)
+data class Pairing(val endpoint: String, val credential: String, val deviceId: String)

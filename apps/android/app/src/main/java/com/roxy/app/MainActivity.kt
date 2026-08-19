@@ -2,17 +2,21 @@ package com.roxy.app
 
 import android.os.Bundle
 import android.content.Context
+import androidx.activity.compose.LocalActivity
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -21,11 +25,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.roxy.app.data.LocalEventEntity
 import com.roxy.app.data.RoxyDatabase
 import com.roxy.app.data.SyncState
 import com.roxy.app.sync.PairingStore
 import com.roxy.app.sync.SyncScheduler
+import com.roxy.app.usage.UsageAccess
+import com.roxy.app.usage.UsageQueryResult
+import com.roxy.app.usage.UsageStatsReader
+import com.roxy.app.usage.UsageCollector
+import com.roxy.app.usage.UsageAggregation
+import com.roxy.app.usage.UsageObservation
+import com.roxy.app.data.UsageBucketEntity
+import com.roxy.app.usage.UsageBucketExporter
 import java.security.SecureRandom
 import java.util.concurrent.Executors
 
@@ -44,7 +59,25 @@ private fun RoxyApp(database: RoxyDatabase? = null, pairingStore: PairingStore? 
     var endpoint by remember { mutableStateOf(pairingStore?.read()?.endpoint ?: "http://127.0.0.1:4100") }
     var credential by remember { mutableStateOf("") }
     var pairingStatus by remember { mutableStateOf(if (pairingStore?.read() == null) "Pairing required before sync" else "Paired for local development") }
+    var usageAccessAllowed by remember { mutableStateOf(context?.let(UsageAccess::isAllowed) ?: false) }
+    var usageQueryStatus by remember { mutableStateOf("No app-usage query has run") }
+    var aggregationStatus by remember { mutableStateOf("No app-usage aggregation has run") }
+    var exportStatus by remember { mutableStateOf("No app-usage buckets are queued") }
     val executor = remember { Executors.newSingleThreadExecutor() }
+    val activity = LocalActivity.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    fun refreshUsageAccess() {
+        usageAccessAllowed = context?.let(UsageAccess::isAllowed) ?: false
+    }
+
+    DisposableEffect(lifecycleOwner, context) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) refreshUsageAccess()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     fun refreshPendingCount() {
         if (database == null) return
@@ -63,11 +96,60 @@ private fun RoxyApp(database: RoxyDatabase? = null, pairingStore: PairingStore? 
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
             ) {
                 Text(text = "Roxy")
                 Text(text = "Foundation check")
                 Text(text = "No collection is active")
+                Text(text = "App usage access: ${if (usageAccessAllowed) "allowed" else "not allowed"}")
+                Text(text = if (usageAccessAllowed) {
+                    "Usage Access is allowed, but Roxy does not collect app usage yet."
+                } else {
+                    "App-usage collection is off. Allow Usage Access in Android settings before it can be enabled."
+                })
+                Text(text = "When enabled in a later step, Roxy will use it only for on-device app-duration totals. It does not grant access to app content, notifications, keystrokes, the microphone, or camera.")
+                Button(onClick = {
+                    activity?.startActivity(UsageAccess.settingsIntent())
+                }) { Text("Open Usage Access settings") }
+                Button(onClick = { refreshUsageAccess() }) { Text("Check app usage access") }
+                Button(
+                    enabled = usageAccessAllowed,
+                    onClick = {
+                        val queryContext = context ?: return@Button
+                        executor.execute {
+                            val count = database?.let { UsageCollector.collect(queryContext, it) }
+                            val status = count?.let { "Observed ${it.observed}; stored ${it.inserted} new usage observations (${it.totalStored} total); nothing was synced" }
+                                ?: "App-usage query was not run because access is not allowed"
+                            android.os.Handler(android.os.Looper.getMainLooper()).post { usageQueryStatus = status }
+                        }
+                    },
+                ) { Text("Collect previous 24 hours") }
+                Text(usageQueryStatus)
+                Button(onClick = {
+                    val localDatabase = database ?: return@Button
+                    executor.execute {
+                        val dao = localDatabase.usageCollectionDao(); val buckets = UsageAggregation.aggregate(dao.observations().map {
+                            UsageObservation(it.packageName, it.eventType, it.occurredAtEpochMillis)
+                        })
+                        localDatabase.runInTransaction { dao.clearBuckets(); dao.saveBuckets(buckets.map { UsageBucketEntity(it.packageName, it.bucketStart, it.durationMillis) }) }
+                        val bucketCount = dao.bucketCount()
+                        android.os.Handler(android.os.Looper.getMainLooper()).post { aggregationStatus = "Stored $bucketCount local 15-minute app-usage buckets; nothing was synced" }
+                    }
+                }) { Text("Calculate 15-minute app usage") }
+                Text(aggregationStatus)
+                Button(onClick = {
+                    val localDatabase = database ?: return@Button
+                    val pairing = pairingStore?.read() ?: run {
+                        exportStatus = "Pair Roxy before queueing aggregate app usage"
+                        return@Button
+                    }
+                    executor.execute {
+                        val queued = UsageBucketExporter.queue(localDatabase, pairing.deviceId)
+                        refreshPendingCount()
+                        android.os.Handler(android.os.Looper.getMainLooper()).post { exportStatus = "Queued $queued aggregate app-usage buckets; raw observations remain on this phone" }
+                    }
+                }) { Text("Queue aggregate app usage") }
+                Text(exportStatus)
                 Text(text = "Pending synthetic events: $pendingCount")
                 Text(text = queueHealth)
                 Button(
