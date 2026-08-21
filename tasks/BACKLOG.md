@@ -33,6 +33,11 @@ This is an ordered index, not a detailed task specification. Expand only the nex
 - T-0306 Android authenticated aggregate timeline reader.
 - T-0307 Phase 3 hosted deployment and physical-phone qualification.
 
+## Phase 3.1 — Owner-facing UI
+
+- T-0310 Android Today dashboard with local app labels and aggregate cards.
+- T-0311 Web review dashboard foundation.
+
 ## Phase 4 — Notifications
 
 - T-0401 Notification Access explainer and package policies.

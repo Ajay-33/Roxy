@@ -1,6 +1,12 @@
 {
   "name": "@roxy/dashboard",
   "version": "0.0.0",
-  "private": true
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "node --check app.js && node --check dashboard-state.js",
+    "typecheck": "node --check app.js && node --check dashboard-state.js",
+    "test": "node --test dashboard-state.test.mjs",
+    "start": "node server.mjs"
+  }
 }
-

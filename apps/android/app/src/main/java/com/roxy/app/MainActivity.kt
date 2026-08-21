@@ -51,6 +51,8 @@ import com.roxy.app.usage.UsageBucketExporter
 import com.roxy.app.timeline.TimelineShell
 import com.roxy.app.timeline.TimelineReader
 import com.roxy.app.timeline.TimelineReadResult
+import com.roxy.app.timeline.UsageSummaryReader
+import com.roxy.app.timeline.UsageSummaryResult
 import java.security.SecureRandom
 import java.util.concurrent.Executors
 
@@ -75,6 +77,8 @@ private fun RoxyApp(database: RoxyDatabase? = null, pairingStore: PairingStore? 
     var exportStatus by remember { mutableStateOf("No app-usage buckets are queued") }
     var timelineState by remember { mutableStateOf(TimelineShell.initial()) }
     var timelineReadStatus by remember { mutableStateOf("Timeline has not been read") }
+    var todaySummary by remember { mutableStateOf<UsageSummaryResult?>(null) }
+    var todaySummaryStatus by remember { mutableStateOf("Refresh to view this date's aggregate activity.") }
     val executor = remember { Executors.newSingleThreadExecutor() }
     val activity = LocalActivity.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -128,6 +132,37 @@ private fun RoxyApp(database: RoxyDatabase? = null, pairingStore: PairingStore? 
                         }
                     }) { Text("Read timeline") }
                     Text(timelineReadStatus)
+                    Button(onClick = {
+                        val pairing = pairingStore?.read() ?: run {
+                            todaySummary = UsageSummaryResult.Error("Connect Roxy before refreshing Today")
+                            todaySummaryStatus = "Connect Roxy before refreshing Today."
+                            return@Button
+                        }
+                        todaySummary = null
+                        todaySummaryStatus = "Refreshing Today…"
+                        executor.execute {
+                            val result = UsageSummaryReader.read(pairing, timelineState.selectedDate.toString())
+                            android.os.Handler(android.os.Looper.getMainLooper()).post {
+                                todaySummary = result
+                                todaySummaryStatus = when (result) {
+                                    is UsageSummaryResult.Success -> "Today refreshed with aggregate data."
+                                    is UsageSummaryResult.Error -> "Today could not be refreshed."
+                                }
+                            }
+                        }
+                    }) { Text("Refresh Today") }
+                    Text(todaySummaryStatus)
+                    when (val summary = todaySummary) {
+                        is UsageSummaryResult.Success -> {
+                            Text("${summary.totalMillis / 60_000} min", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                            Text("Recorded activity", style = MaterialTheme.typography.labelLarge)
+                            Text("Top apps on this phone", fontWeight = FontWeight.SemiBold)
+                            summary.apps.forEach { app -> Text("${context?.let { UsageSummaryReader.label(it, app.id) } ?: app.id} · ${app.durationMillis / 60_000} min") }
+                            Text("Evidence is available through the timeline. Data status: ${summary.reason}.")
+                        }
+                        is UsageSummaryResult.Error -> Text("Today summary could not load: ${summary.code}")
+                        null -> Text("Refresh to view exact aggregate totals for this date.")
+                    }
                 }
                 Section("1. Permission", if (usageAccessAllowed) "App usage access is ready." else "Allow app usage access to continue.") {
                     Button(onClick = {

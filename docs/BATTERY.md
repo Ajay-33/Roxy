@@ -28,6 +28,8 @@ Trip mode may temporarily exceed the normal target because it is explicitly star
 - No perpetual `dataSync` foreground service.
 - Retry with exponential backoff and stop retrying permanent errors.
 - AI processing runs on the server, not continuously on the phone.
+- Owner-facing dashboard reads must be user-initiated; rendering local cards and locally resolving installed-app labels do not schedule background work.
+- The static web review shell makes no network calls, schedules no work, and has no battery effect on the paired phone.
 
 ## Initial operating targets
 
@@ -77,4 +79,3 @@ Decision and tuning:
 ```
 
 Do not claim battery success from an emulator or a few minutes of profiling.
-

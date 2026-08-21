@@ -39,6 +39,12 @@ Allowed: event ID, event type, schema version, byte count, status code, duration
 
 Forbidden: payload JSON, notification title/body, coordinates, place labels, prompts, retrieved memories, credentials, connection strings.
 
+## Owner-facing labels
+
+The Today dashboard may resolve an aggregate app identifier to its installed display label on the owner's phone. That label is rendered only in the local UI: it is not persisted by the dashboard, uploaded as a new data class, logged, placed in fixtures, committed, or sent to AI.
+
+The web review foundation contains only clearly synthetic preview values. It does not call the API, accept a pairing credential, or persist any owner data in browser storage. A live browser connection requires a dedicated owner-auth and server-session design.
+
 ## Notification redaction
 
 Before upload:
@@ -94,4 +100,3 @@ If a credential or dataset may be exposed:
 4. Determine affected time range and data classes.
 5. Delete exposed temporary resources/backups where possible.
 6. Document the cause and prevention in a decision/incident note before resuming.
-
