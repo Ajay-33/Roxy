@@ -30,6 +30,8 @@ This is an ordered index, not a detailed task specification. Expand only the nex
 - T-0303 Exact top-app and usage-total query endpoints.
 - T-0304 Evidence links from fact to observations.
 - T-0305 Timezone and midnight regression suite.
+- T-0306 Android authenticated aggregate timeline reader.
+- T-0307 Phase 3 hosted deployment and physical-phone qualification.
 
 ## Phase 4 — Notifications
 

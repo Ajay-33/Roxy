@@ -11,6 +11,34 @@ const timezoneSchema = z.string().refine(
   "Expected an IANA timezone",
 );
 
+const localDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Expected a local date in YYYY-MM-DD format").refine(
+  (date) => {
+    const [yearText, monthText, dayText] = date.split("-");
+    const year = Number(yearText ?? "");
+    const month = Number(monthText ?? "");
+    const day = Number(dayText ?? "");
+    const parsed = new Date(Date.UTC(year, month - 1, day));
+    return parsed.getUTCFullYear() === year && parsed.getUTCMonth() === month - 1 && parsed.getUTCDate() === day;
+  },
+  "Expected a valid calendar date",
+);
+
+export const timelineQuerySchema = z.object({
+  deviceId: z.string().min(1).max(128),
+  date: localDateSchema,
+  type: z.literal("usage.bucket").default("usage.bucket"),
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+  cursor: z.string().min(1).max(512).optional(),
+}).strict();
+export type TimelineQuery = z.infer<typeof timelineQuerySchema>;
+
+export const usageSummaryQuerySchema = z.object({
+  deviceId: z.string().min(1).max(128),
+  date: localDateSchema,
+  limit: z.coerce.number().int().min(1).max(20).default(5),
+}).strict();
+export type UsageSummaryQuery = z.infer<typeof usageSummaryQuerySchema>;
+
 export const eventEnvelopeV1Schema = z.object({
   id: uuidV7Schema, schemaVersion: z.literal(1), deviceId: z.string().min(1),
   type: z.string().regex(/^[a-z][a-z0-9]*(\.[a-z][a-z0-9_]*)+$/), occurredAt: z.string().datetime(), recordedAt: z.string().datetime(),

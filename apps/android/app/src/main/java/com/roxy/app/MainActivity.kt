@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
@@ -47,6 +48,9 @@ import com.roxy.app.usage.UsageAggregation
 import com.roxy.app.usage.UsageObservation
 import com.roxy.app.data.UsageBucketEntity
 import com.roxy.app.usage.UsageBucketExporter
+import com.roxy.app.timeline.TimelineShell
+import com.roxy.app.timeline.TimelineReader
+import com.roxy.app.timeline.TimelineReadResult
 import java.security.SecureRandom
 import java.util.concurrent.Executors
 
@@ -69,6 +73,8 @@ private fun RoxyApp(database: RoxyDatabase? = null, pairingStore: PairingStore? 
     var usageQueryStatus by remember { mutableStateOf("No app-usage query has run") }
     var aggregationStatus by remember { mutableStateOf("No app-usage aggregation has run") }
     var exportStatus by remember { mutableStateOf("No app-usage buckets are queued") }
+    var timelineState by remember { mutableStateOf(TimelineShell.initial()) }
+    var timelineReadStatus by remember { mutableStateOf("Timeline has not been read") }
     val executor = remember { Executors.newSingleThreadExecutor() }
     val activity = LocalActivity.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -101,8 +107,28 @@ private fun RoxyApp(database: RoxyDatabase? = null, pairingStore: PairingStore? 
         Surface(modifier = Modifier.fillMaxSize()) {
             Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text("Roxy", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                Text("Private app-usage check", style = MaterialTheme.typography.titleMedium)
-                Text("Roxy only prepares on-device app-duration totals. It never reads app content, notifications, keystrokes, microphone, or camera data.")
+                Text("Private timeline", style = MaterialTheme.typography.titleMedium)
+                Text("Roxy prepares aggregate app-duration totals on this phone. It never reads app content, notifications, keystrokes, microphone, or camera data.")
+                Section("Today", TimelineShell.detail(timelineState.availability)) {
+                    Text("Selected local date: ${timelineState.selectedDate}")
+                    Text("Data status: incomplete until Roxy reads verified aggregate data.", fontWeight = FontWeight.SemiBold)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(onClick = { timelineState = TimelineShell.previousDay(timelineState) }) { Text("Previous day") }
+                        Button(enabled = TimelineShell.canMoveToNextDay(timelineState), onClick = { timelineState = TimelineShell.nextDay(timelineState) }) { Text("Next day") }
+                    }
+                    Button(onClick = {
+                        val pairing = pairingStore?.read() ?: run { timelineReadStatus = "Connect Roxy before reading the timeline"; return@Button }
+                        executor.execute {
+                            val result = TimelineReader.read(pairing, timelineState.selectedDate.toString())
+                            val status = when (result) {
+                                is TimelineReadResult.Success -> "Read ${result.itemCount} aggregate timeline entries; coverage is ${result.incompleteReason}"
+                                is TimelineReadResult.Error -> "Timeline read could not complete: ${result.code}"
+                            }
+                            android.os.Handler(android.os.Looper.getMainLooper()).post { timelineReadStatus = status }
+                        }
+                    }) { Text("Read timeline") }
+                    Text(timelineReadStatus)
+                }
                 Section("1. Permission", if (usageAccessAllowed) "App usage access is ready." else "Allow app usage access to continue.") {
                     Button(onClick = {
                     activity?.startActivity(UsageAccess.settingsIntent())

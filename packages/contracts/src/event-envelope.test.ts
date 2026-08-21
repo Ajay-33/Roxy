@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { eventEnvelopeV1Schema } from "./event-envelope.ts";
+import { eventEnvelopeV1Schema, usageSummaryQuerySchema } from "./event-envelope.ts";
 
 const fixture = {
   id: "0195bffc-8f93-7c34-8a8f-123456789abc", schemaVersion: 1, deviceId: "synthetic-device",
@@ -15,4 +15,19 @@ test("rejects non-v7 identifiers, invalid timezones, and invalid confidence", ()
   assert.equal(eventEnvelopeV1Schema.safeParse({ ...fixture, id: "0195bffc-8f93-4c34-8a8f-123456789abc" }).success, false);
   assert.equal(eventEnvelopeV1Schema.safeParse({ ...fixture, timezone: "not/a-timezone" }).success, false);
   assert.equal(eventEnvelopeV1Schema.safeParse({ ...fixture, quality: { confidence: 2, isDerived: false } }).success, false);
+});
+test("validates local calendar dates including leap-day boundaries", () => {
+  assert.equal(usageSummaryQuerySchema.safeParse({ deviceId: "synthetic-device", date: "2028-02-29" }).success, true);
+  assert.equal(usageSummaryQuerySchema.safeParse({ deviceId: "synthetic-device", date: "2027-02-29" }).success, false);
+  assert.equal(usageSummaryQuerySchema.safeParse({ deviceId: "synthetic-device", date: "2026-13-01" }).success, false);
+});
+test("one UTC instant maps to the observed local date rather than a server date", () => {
+  const instant = new Date("2026-08-21T20:00:00.000Z");
+  const dateIn = (timeZone: string) => {
+    const parts = new Intl.DateTimeFormat("en", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(instant);
+    const value = (type: string) => parts.find((part) => part.type === type)?.value;
+    return `${value("year")}-${value("month")}-${value("day")}`;
+  };
+  assert.equal(dateIn("Asia/Calcutta"), "2026-08-22");
+  assert.equal(dateIn("America/Los_Angeles"), "2026-08-21");
 });
