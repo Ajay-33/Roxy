@@ -30,7 +30,7 @@ Do not load `PLAN.md` unless planning or changing scope. This keeps context and 
 - Never infer sensitive facts as truth. Store hypotheses with evidence and confidence.
 - Deterministic code owns numbers, time ranges, durations, rankings, and totals. AI may explain them.
 - Every AI factual claim must be traceable to stored facts or events.
-- Raw personal payloads must not appear in logs, fixtures, screenshots, commits, or prompts used for development.
+- Owner-requested app labels and aggregate usage timings may appear in Roxy's local, authenticated UI. They must not appear in logs, fixtures, screenshots, commits, or prompts used for development. Credentials, tokens, connection strings, and other secrets must never be exposed outside their approved secure storage.
 
 ## Battery contract
 
@@ -77,4 +77,3 @@ Report:
 4. Manual phone check still needed.
 5. Battery/privacy impact.
 6. The next task ID, without starting it.
-

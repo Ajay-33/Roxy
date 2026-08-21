@@ -15,6 +15,7 @@ Phase 3 is accepted. Phase 3.1 turns its owner-authenticated aggregate data into
 | 7 | T-0307 | Hosted deployment and physical-phone qualification | T-0306 | Done |
 | 8 | T-0310 | Android Today dashboard with local app labels and aggregate cards | T-0307 | Done |
 | 9 | T-0311 | Web review dashboard foundation | T-0310 | Done |
+| 10 | T-0312 | Android app-label fallback and Today-card polish | T-0311 | Done |
 
 ## Phase 3.1 outcome
 
@@ -25,4 +26,4 @@ Phase 3 is accepted. Phase 3.1 turns its owner-authenticated aggregate data into
 
 ## Next unblocked task
 
-Phase 3.1 is complete. `tasks/active/` is intentionally empty; the next planned task is T-0401.
+Phase 3.1 follow-up work is complete. `tasks/active/` is intentionally empty; T-0401 is the next planned task.

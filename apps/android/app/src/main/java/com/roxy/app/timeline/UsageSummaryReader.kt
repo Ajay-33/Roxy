@@ -6,6 +6,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 data class TodayApp(val id: String, val durationMillis: Long)
+data class TodayAppLabel(val text: String, val resolvedLocally: Boolean)
 
 sealed interface UsageSummaryResult {
     data class Success(
@@ -36,12 +37,15 @@ object UsageSummaryReader {
         val apps = Regex("\\\"appId\\\"\\s*:\\s*\\\"([^\\\"]+)\\\"\\s*,\\s*\\\"durationMillis\\\"\\s*:\\s*(\\d+)").findAll(body).map { TodayApp(it.groupValues[1], it.groupValues[2].toLong()) }.toList()
         return UsageSummaryResult.Success(total, apps, reason)
     }
-    fun label(context: Context, id: String): String = displayLabel(
+    fun resolveLabel(context: Context, id: String): TodayAppLabel = displayLabel(
         runCatching {
             context.packageManager.getApplicationLabel(context.packageManager.getApplicationInfo(id, 0)).toString()
         }.getOrNull(),
+        id,
     )
 
-    internal fun displayLabel(resolvedLabel: String?): String =
-        resolvedLabel?.takeIf { it.isNotBlank() } ?: "Unavailable on this phone"
+    internal fun displayLabel(resolvedLabel: String?, id: String): TodayAppLabel =
+        resolvedLabel?.takeIf { it.isNotBlank() }
+            ?.let { TodayAppLabel(it, resolvedLocally = true) }
+            ?: TodayAppLabel(id, resolvedLocally = false)
 }

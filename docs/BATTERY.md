@@ -29,6 +29,7 @@ Trip mode may temporarily exceed the normal target because it is explicitly star
 - Retry with exponential backoff and stop retrying permanent errors.
 - AI processing runs on the server, not continuously on the phone.
 - Owner-facing dashboard reads must be user-initiated; rendering local cards and locally resolving installed-app labels do not schedule background work.
+- Resolving a label uses Android's local package metadata during the existing Today render; it adds no collector query, upload, wake lock, or scheduled work.
 - The static web review shell makes no network calls, schedules no work, and has no battery effect on the paired phone.
 
 ## Initial operating targets

@@ -157,7 +157,14 @@ private fun RoxyApp(database: RoxyDatabase? = null, pairingStore: PairingStore? 
                             Text("${summary.totalMillis / 60_000} min", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                             Text("Recorded activity", style = MaterialTheme.typography.labelLarge)
                             Text("Top apps on this phone", fontWeight = FontWeight.SemiBold)
-                            summary.apps.forEach { app -> Text("${context?.let { UsageSummaryReader.label(it, app.id) } ?: app.id} · ${app.durationMillis / 60_000} min") }
+                            summary.apps.forEach { app ->
+                                val label = context?.let { UsageSummaryReader.resolveLabel(it, app.id) }
+                                    ?: com.roxy.app.timeline.TodayAppLabel(app.id, resolvedLocally = false)
+                                Text("${label.text} · ${app.durationMillis / 60_000} min", fontWeight = FontWeight.Medium)
+                                if (!label.resolvedLocally) {
+                                    Text("No local app label is available; showing its identifier.", style = MaterialTheme.typography.bodySmall)
+                                }
+                            }
                             Text("Evidence is available through the timeline. Data status: ${summary.reason}.")
                         }
                         is UsageSummaryResult.Error -> Text("Today summary could not load: ${summary.code}")

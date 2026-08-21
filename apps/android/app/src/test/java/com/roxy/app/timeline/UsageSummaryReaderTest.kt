@@ -22,8 +22,8 @@ class UsageSummaryReaderTest {
         assertEquals(UsageSummaryResult.Error("summary_invalid_response"), UsageSummaryReader.parse("""{"totalDurationMillis":1000,"completeness":{"reason":"complete"}}"""))
     }
 
-    @Test fun `uses a non-identifying local fallback when a label is unavailable`() {
-        assertEquals("Unavailable on this phone", UsageSummaryReader.displayLabel(null))
-        assertEquals("Example", UsageSummaryReader.displayLabel("Example"))
+    @Test fun `uses an exact owner-visible identifier when a local label is unavailable`() {
+        assertEquals(TodayAppLabel("opaque-app-id", resolvedLocally = false), UsageSummaryReader.displayLabel(null, "opaque-app-id"))
+        assertEquals(TodayAppLabel("Example", resolvedLocally = true), UsageSummaryReader.displayLabel("Example", "opaque-app-id"))
     }
 }

@@ -37,6 +37,7 @@ This is an ordered index, not a detailed task specification. Expand only the nex
 
 - T-0310 Android Today dashboard with local app labels and aggregate cards.
 - T-0311 Web review dashboard foundation.
+- T-0312 Android app-label fallback and Today-card polish.
 
 ## Phase 4 — Notifications
 
