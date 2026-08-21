@@ -12,11 +12,11 @@ Phase 3 starts with the aggregate-only timeline read API. The deferred Phase 2 t
 | 4 | T-0304 | Evidence links from fact to observations | T-0301, T-0303 | Done |
 | 5 | T-0305 | Timezone and midnight regression suite | T-0301–T-0304 | Done |
 | 6 | T-0306 | Android authenticated aggregate timeline reader | T-0301–T-0305 | Done |
-| 7 | T-0307 | Hosted deployment and physical-phone qualification | T-0306 | Active |
+| 7 | T-0307 | Hosted deployment and physical-phone qualification | T-0306 | Done |
 
 ## Phase 3 outcome
 
 - Timeline data stays aggregate-only and is isolated to the authenticated device.
 - Dates/types, ordering, totals, and provenance remain deterministic.
 - Empty or incompletely observed dates are visibly labelled; inactivity is never asserted as confirmed sleep.
-- Phase implementation is complete; end-to-end deployment and physical-phone qualification remain required before Phase 3 is accepted.
+- Phase 3 is accepted: deployed and physically qualified end to end on 2026-08-21. The UI continues to label coverage as incomplete; this is not a claim that all historical usage is complete.
