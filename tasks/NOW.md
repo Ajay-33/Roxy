@@ -1,6 +1,6 @@
 # Now: Phase 2 — App Usage
 
-T-0206 is in progress: three consecutive real calendar days of app-usage and battery validation. T-0207 hosted validation and T-0208 UI cleanup are complete.
+Phase 2 is complete as an owner-approved one-day qualification. The original three-day physical validation remains deferred follow-up work.
 
 ## Phase 2 queue
 
@@ -13,11 +13,11 @@ T-0206 is in progress: three consecutive real calendar days of app-usage and bat
 | 5 | T-0205 | Server daily app totals and seeded query tests | T-0204 | Done |
 | 6 | T-0207 | Hosted validation environment and migration runner | T-0205 | Done |
 | 7 | T-0208 | Simplify diagnostic and pairing UI | T-0207 | Done |
-| 8 | T-0206 | Three-day physical-phone accuracy/battery validation | T-0205, T-0207 | In progress |
+| 8 | T-0206 | One-day physical-phone qualification (three-day validation deferred) | T-0205, T-0207 | Done |
 
 ## Phase 2 exit gate
 
-- Three real days compared with Digital Wellbeing; discrepancies documented.
-- Reboots, offline periods, midnight, and timezone changes covered.
+- One owner-approved day compared with Digital Wellbeing; discrepancy documented without personal usage values.
+- Three-day reboot/offline/midnight/timezone validation deferred.
 - Events are aggregated before upload.
-- Physical-phone battery measurement is in the target or warning band with a tuning decision.
+- Battery measurement deferred because the current owner-triggered workflow has no continuous collector.
