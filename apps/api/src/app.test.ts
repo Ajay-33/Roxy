@@ -34,7 +34,7 @@ const notificationStore: EventStore & NotificationSummaryStore = { ...store, not
 } };
 const notificationAnalyticsStore: EventStore & NotificationAnalyticsStore = { ...store, notificationAnalytics: async (query) => {
     assert.equal(query.deviceId, "synthetic-device"); assert.equal(query.date, "2026-08-19"); assert.equal(query.period, "day");
-    return { count: 3, postedCount: 1, updatedCount: 1, removedCount: 1, hourly: [{ hour: 9, count: 2 }], topApps: [{ packageName: "example.synthetic", count: 3 }], bursts: [], period: "day" };
+    return { count: 3, postedCount: 1, updatedCount: 1, removedCount: 1, hourly: [{ hour: 9, count: 2 }], hourlySources: [{ hour: 9, sources: [{ packageName: "example.synthetic", count: 2 }] }], history: [{ date: "2026-08-18", count: 2 }], topApps: [{ packageName: "example.synthetic", count: 3 }], bursts: [], period: "day" };
 } };
 
 test("rejects missing credentials", async () => {
@@ -60,7 +60,7 @@ test("returns an authenticated metadata-only notification summary", async () => 
 test("returns authenticated deterministic notification analytics", async () => {
     const app = buildApp(key, notificationAnalyticsStore); const headers = { authorization: `Bearer ${key}` };
     const response = await app.inject({ method: "GET", url: "/v1/notifications/analytics?deviceId=synthetic-device&date=2026-08-19", headers });
-    assert.equal(response.statusCode, 200); assert.deepEqual(response.json(), { count: 3, postedCount: 1, updatedCount: 1, removedCount: 1, hourly: [{ hour: 9, count: 2 }], topApps: [{ packageName: "example.synthetic", count: 3 }], bursts: [], period: "day", completeness: { status: "incomplete", reason: "coverage_not_proven" } });
+    assert.equal(response.statusCode, 200); assert.deepEqual(response.json(), { count: 3, postedCount: 1, updatedCount: 1, removedCount: 1, hourly: [{ hour: 9, count: 2 }], hourlySources: [{ hour: 9, sources: [{ packageName: "example.synthetic", count: 2 }] }], history: [{ date: "2026-08-18", count: 2 }], topApps: [{ packageName: "example.synthetic", count: 3 }], bursts: [], period: "day", completeness: { status: "incomplete", reason: "coverage_not_proven" } });
     const denied = await app.inject({ method: "GET", url: "/v1/notifications/analytics?deviceId=synthetic-device&date=2026-08-19" }); assert.equal(denied.statusCode, 401); await app.close();
 });
 test("returns authenticated seeded daily app totals", async () => {

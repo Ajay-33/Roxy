@@ -7,9 +7,11 @@ import java.time.LocalDate
 
 data class NotificationHour(val hour: Int, val count: Int)
 data class NotificationSource(val packageName: String, val count: Int)
+data class NotificationHourSources(val hour: Int, val sources: List<NotificationSource>)
+data class NotificationHistory(val date: String, val count: Int)
 data class NotificationBurst(val startHour: Int, val count: Int)
 data class NotificationCompleteness(val status: String, val reason: String)
-data class NotificationAnalytics(val count: Int, val postedCount: Int, val updatedCount: Int, val removedCount: Int, val period: String, val hourly: List<NotificationHour>, val sources: List<NotificationSource>, val bursts: List<NotificationBurst>, val completeness: NotificationCompleteness) {
+data class NotificationAnalytics(val count: Int, val postedCount: Int, val updatedCount: Int, val removedCount: Int, val period: String, val hourly: List<NotificationHour>, val sources: List<NotificationSource>, val bursts: List<NotificationBurst>, val completeness: NotificationCompleteness, val hourlySources: List<NotificationHourSources> = emptyList(), val history: List<NotificationHistory> = emptyList()) {
     val busiestHour: Int? get() = hourly.maxByOrNull { it.count }?.hour
     val topSourcePackage: String? get() = sources.firstOrNull()?.packageName
     val topSourceCount: Int get() = sources.firstOrNull()?.count ?: 0
@@ -32,6 +34,8 @@ object NotificationAnalyticsReader {
         val hours=Regex("\\\"hour\\\"\\s*:\\s*(\\d+)\\s*,\\s*\\\"count\\\"\\s*:\\s*(\\d+)").findAll(body).map { NotificationHour(it.groupValues[1].toInt(),it.groupValues[2].toInt()) }.toList()
         val sources=Regex("\\\"packageName\\\"\\s*:\\s*\\\"([^\\\"]+)\\\"\\s*,\\s*\\\"count\\\"\\s*:\\s*(\\d+)").findAll(body).map { NotificationSource(it.groupValues[1],it.groupValues[2].toInt()) }.toList()
         val bursts=Regex("\\\"startHour\\\"\\s*:\\s*(\\d+)\\s*,\\s*\\\"count\\\"\\s*:\\s*(\\d+)").findAll(body).map { NotificationBurst(it.groupValues[1].toInt(),it.groupValues[2].toInt()) }.toList()
-        return NotificationAnalyticsResult.Success(NotificationAnalytics(count,posted,updated,removed,q("period") ?: "day",hours,sources,bursts,NotificationCompleteness(q("status") ?: "incomplete",q("reason") ?: if(count==0)"no_notification_activity" else "coverage_not_proven")))
+        val hourlySources=Regex("\\\"hour\\\"\\s*:\\s*(\\d+)\\s*,\\s*\\\"sources\\\"\\s*:\\s*\\[(.*?)]",RegexOption.DOT_MATCHES_ALL).findAll(body).map { m -> NotificationHourSources(m.groupValues[1].toInt(),Regex("\\\"packageName\\\"\\s*:\\s*\\\"([^\\\"]+)\\\"\\s*,\\s*\\\"count\\\"\\s*:\\s*(\\d+)").findAll(m.groupValues[2]).map { NotificationSource(it.groupValues[1],it.groupValues[2].toInt()) }.toList()) }.toList()
+        val history=Regex("\\\"date\\\"\\s*:\\s*\\\"(\\d{4}-\\d{2}-\\d{2})\\\"\\s*,\\s*\\\"count\\\"\\s*:\\s*(\\d+)").findAll(body).map { NotificationHistory(it.groupValues[1],it.groupValues[2].toInt()) }.toList()
+        return NotificationAnalyticsResult.Success(NotificationAnalytics(count,posted,updated,removed,q("period") ?: "day",hours,sources,bursts,NotificationCompleteness(q("status") ?: "incomplete",q("reason") ?: if(count==0)"no_notification_activity" else "coverage_not_proven"),hourlySources,history))
     }
 }

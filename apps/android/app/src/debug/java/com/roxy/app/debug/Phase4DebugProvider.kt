@@ -92,13 +92,16 @@ class Phase4DebugProvider : ContentProvider() {
             "notification_analytics_status" -> {
                 val pairing = PairingStore(appContext).read()
                     ?: return Bundle().apply { putString("result", "unpaired") }
-                when (val result = NotificationAnalyticsReader.read(pairing, LocalDate.now().toString())) {
+                when (val result = NotificationAnalyticsReader.read(pairing, LocalDate.now().toString(), arg ?: "day")) {
                     is NotificationAnalyticsResult.Success -> Bundle().apply {
                         putString("result", "success")
                         putInt("count", result.value.count)
                         putInt("postedCount", result.value.postedCount)
+                        putInt("updatedCount", result.value.updatedCount)
                         putInt("removedCount", result.value.removedCount)
                         putInt("topSourceCount", result.value.topSourceCount)
+                        putString("period", result.value.period)
+                        putString("completeness", result.value.completeness.reason)
                     }
                     is NotificationAnalyticsResult.Error -> Bundle().apply { putString("result", result.code) }
                 }

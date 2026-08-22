@@ -1,3 +1,3 @@
-# Now: T-0418 — Notification lifecycle accounting
+# Now: T-0421 — Deterministic notification activity patterns
 
-Phase 4.2 is complete. Before Phase 5, Phase 4.3 will make notification analytics accurate, visual, and useful while remaining metadata-only. T-0418 is planned as the first task; no Phase 4.3 implementation has started.
+T-0420 is complete. Connect transparent, evidence-backed notification-activity comparisons to historical aggregate data without making claims about notification meaning.
