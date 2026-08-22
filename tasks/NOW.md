@@ -1,3 +1,3 @@
-# Now: T-0408 — Android notification queue and WorkManager sync
+# Now: no active implementation task
 
-The hosted metadata API is live. T-0408 wires policy-approved local notification metadata into Roxy's automatic, constrained sync outbox.
+T-0408 is verified: policy-approved notification metadata automatically moves through Roxy's local outbox and constrained WorkManager sync to the hosted API. The next planned task is T-0409, an owner-facing notification dashboard built from this real metadata.

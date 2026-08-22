@@ -51,7 +51,7 @@ The web review foundation contains only clearly synthetic preview values. It doe
 
 Notification collection remains off until the owner enables its local control and grants Android Notification Access after a listener is introduced. Package policies are stored locally before that listener exists: every owner-added package begins blocked, and an owner must explicitly change it to metadata-only. The setup flow does not enumerate installed apps or collect notification metadata or text.
 
-When enabled in Phase 4, the listener records metadata only for explicitly metadata-only packages. It makes no network calls and stores no notification extras, title/body text, actions, intents, images, tokens, remote-view data, or people/contact data. Its local metadata table is not part of the sync queue until a separately scoped upload design exists.
+When enabled in Phase 4, the listener records metadata only for explicitly metadata-only packages. It makes no network calls and stores no notification extras, title/body text, actions, intents, images, tokens, remote-view data, or people/contact data. After a newly deduplicated metadata row is stored, Roxy writes an allowlisted metadata envelope to its local outbox and asks constrained WorkManager batching to sync it. Notification text and redaction rows never enter that outbox.
 
 Notification lifecycle updates are keyed only by a local SHA-256 digest of the package identifier and Android's opaque notification key. The original key is never persisted or logged; group summaries and missing keys are excluded. A digest collision is theoretically possible, but fails toward under-counting rather than exposing or inflating notification data.
 
