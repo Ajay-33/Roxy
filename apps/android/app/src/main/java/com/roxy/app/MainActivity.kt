@@ -59,7 +59,12 @@ import com.roxy.app.notifications.NotificationPolicy
 import com.roxy.app.notifications.NotificationPolicyStore
 import com.roxy.app.notifications.NotificationAccess
 import com.roxy.app.notifications.NotificationListenerHealthStore
+import com.roxy.app.notifications.NotificationSummaryReader
+import com.roxy.app.notifications.NotificationSummaryResult
 import java.security.SecureRandom
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.concurrent.Executors
 
 class MainActivity : ComponentActivity() {
@@ -85,6 +90,8 @@ private fun RoxyApp(database: RoxyDatabase? = null, pairingStore: PairingStore? 
     var timelineReadStatus by remember { mutableStateOf("Timeline has not been read") }
     var todaySummary by remember { mutableStateOf<UsageSummaryResult?>(null) }
     var todaySummaryStatus by remember { mutableStateOf("Refresh to view this date's aggregate activity.") }
+    var notificationSummary by remember { mutableStateOf<NotificationSummaryResult?>(null) }
+    var notificationSummaryStatus by remember { mutableStateOf("Refresh to view metadata-only notification activity.") }
     val notificationStore = remember(context) { context?.let(::NotificationPolicyStore) }
     var notificationsEnabled by remember { mutableStateOf(notificationStore?.isEnabled() ?: false) }
     var notificationRules by remember { mutableStateOf(notificationStore?.rules().orEmpty()) }
@@ -192,6 +199,50 @@ private fun RoxyApp(database: RoxyDatabase? = null, pairingStore: PairingStore? 
                         }
                         is UsageSummaryResult.Error -> Text("Today summary could not load: ${summary.code}")
                         null -> Text("Refresh to view exact aggregate totals for this date.")
+                    }
+                    Section("Notification activity", "Automatic, metadata-only events from the paired Roxy service.") {
+                        Button(onClick = {
+                            val pairing = pairingStore?.read() ?: run {
+                                notificationSummary = NotificationSummaryResult.Error("notification_summary_unpaired")
+                                notificationSummaryStatus = "Connect Roxy before refreshing notification activity."
+                                return@Button
+                            }
+                            notificationSummary = null
+                            notificationSummaryStatus = "Refreshing notification activity…"
+                            executor.execute {
+                                val result = NotificationSummaryReader.read(pairing, timelineState.selectedDate.toString())
+                                android.os.Handler(android.os.Looper.getMainLooper()).post {
+                                    notificationSummary = result
+                                    notificationSummaryStatus = when (result) {
+                                        is NotificationSummaryResult.Success -> "Notification activity refreshed."
+                                        is NotificationSummaryResult.Error -> "Notification activity could not be refreshed."
+                                    }
+                                }
+                            }
+                        }) { Text("Refresh notification activity") }
+                        Text(notificationSummaryStatus)
+                        when (val summary = notificationSummary) {
+                            is NotificationSummaryResult.Success -> {
+                                Text("${summary.count}", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                                Text("notification events recorded", style = MaterialTheme.typography.labelLarge)
+                                if (summary.items.isEmpty()) {
+                                    Text("No approved notification metadata was recorded for this date.")
+                                } else {
+                                    summary.items.forEach { item ->
+                                        val label = context?.let { UsageSummaryReader.resolveLabel(it, item.packageName) }
+                                            ?: com.roxy.app.timeline.TodayAppLabel(item.packageName, resolvedLocally = false)
+                                        val time = runCatching {
+                                            DateTimeFormatter.ofPattern("HH:mm").withZone(ZoneId.systemDefault()).format(Instant.parse(item.occurredAt))
+                                        }.getOrDefault("time unavailable")
+                                        Text("${label.text} · ${if (item.type == "notification.posted") "arrived" else "cleared"} · $time", fontWeight = FontWeight.Medium)
+                                        if (!label.resolvedLocally) Text("No local app label is available; showing its identifier.", style = MaterialTheme.typography.bodySmall)
+                                    }
+                                }
+                                Text("This list never includes notification title or message text.", style = MaterialTheme.typography.bodySmall)
+                            }
+                            is NotificationSummaryResult.Error -> Text("Notification activity could not load: ${summary.code}")
+                            null -> Text("Refresh to view the latest synced, metadata-only activity.")
+                        }
                     }
                 }
                 Section("1. Permission", if (usageAccessAllowed) "App usage access is ready." else "Allow app usage access to continue.") {

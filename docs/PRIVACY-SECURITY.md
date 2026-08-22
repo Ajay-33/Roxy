@@ -59,6 +59,8 @@ Any future text path must pass an on-device allowlisted sanitizer before persist
 
 Redacted text is disabled by default and can only be enabled through a package-specific local owner action. It is local-only, never enters the sync queue, and expires after seven days; retention deletion reports only a safe count.
 
+The paired Android owner can explicitly refresh a hosted notification-activity card for a selected date. That HTTPS read uses the device credential held in Android Keystore and returns only metadata count, event kind/time, package identifier, and redaction count. A package display label is resolved only while rendering on that phone; it is not persisted, logged, or sent anywhere by the dashboard. Notification title and message text are not part of this response or UI.
+
 Before upload:
 
 - respect per-package block/metadata/text policy;
