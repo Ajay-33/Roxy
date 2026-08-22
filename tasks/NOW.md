@@ -1,3 +1,3 @@
-# Now: T-0417 — Deterministic notification metadata analytics
+# Now: Phase 4.2 complete — next T-0501
 
-Default metadata collection is verified. T-0417 turns that real event stream into owner-visible, deterministic analytics without reading notification content.
+Automatic metadata collection, hosted sync, owner dashboard read models, and deterministic notification analytics are qualified. The next planned task is T-0501, location permission and mode controls.

@@ -17,6 +17,8 @@ import com.roxy.app.notifications.NotificationPolicy
 import com.roxy.app.notifications.NotificationPolicyStore
 import com.roxy.app.notifications.NotificationSummaryReader
 import com.roxy.app.notifications.NotificationSummaryResult
+import com.roxy.app.notifications.NotificationAnalyticsReader
+import com.roxy.app.notifications.NotificationAnalyticsResult
 import com.roxy.app.sync.PairingStore
 import java.time.LocalDate
 
@@ -67,6 +69,20 @@ class Phase4DebugProvider : ContentProvider() {
                         putInt("itemCount", result.items.size)
                     }
                     is NotificationSummaryResult.Error -> Bundle().apply { putString("result", result.code) }
+                }
+            }
+            "notification_analytics_status" -> {
+                val pairing = PairingStore(appContext).read()
+                    ?: return Bundle().apply { putString("result", "unpaired") }
+                when (val result = NotificationAnalyticsReader.read(pairing, LocalDate.now().toString())) {
+                    is NotificationAnalyticsResult.Success -> Bundle().apply {
+                        putString("result", "success")
+                        putInt("count", result.value.count)
+                        putInt("postedCount", result.value.postedCount)
+                        putInt("removedCount", result.value.removedCount)
+                        putInt("topSourceCount", result.value.topSourceCount)
+                    }
+                    is NotificationAnalyticsResult.Error -> Bundle().apply { putString("result", result.code) }
                 }
             }
             "collector_health" -> Bundle().apply {
