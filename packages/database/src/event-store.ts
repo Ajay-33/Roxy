@@ -9,6 +9,8 @@ export type UsageSummary = { totalDurationMillis: number; evidenceEventIds: stri
 export type UsageSummaryStore = { usageSummary(query: { deviceId: string; date: string; limit: number }): Promise<UsageSummary> };
 export type TimelineItem = { id: string; type: string; occurredAt: string; recordedAt: string; timezone: string; source: string; confidence: number; isDerived: boolean };
 export type TimelinePage = { items: TimelineItem[]; total: number };
+export type NotificationSummary = { count: number; items: Array<{ id: string; type: string; occurredAt: string; packageName: string; redactionCount: number }> };
+export interface NotificationSummaryStore { notificationSummary(query: { deviceId: string; date: string; limit: number }): Promise<NotificationSummary>; }
 export type TimelineStore = { timeline(query: { deviceId: string; date: string; type?: "usage.bucket"; limit: number; cursor?: { occurredAt: string; id: string } }): Promise<TimelinePage> };
 
 export function postgresConnectionString(connectionString: string): string {
@@ -19,7 +21,7 @@ export function postgresConnectionString(connectionString: string): string {
     return url.toString();
 }
 
-export class PostgresEventStore implements EventStore, UsageTotalsStore, TimelineStore, UsageSummaryStore {
+export class PostgresEventStore implements EventStore, UsageTotalsStore, TimelineStore, UsageSummaryStore, NotificationSummaryStore {
     private readonly pool: Pool;
     constructor(connectionString: string) { this.pool = new Pool({ connectionString: postgresConnectionString(connectionString) }); }
     async insert(event: EventEnvelopeV1): Promise<InsertResult> {
@@ -91,5 +93,11 @@ export class PostgresEventStore implements EventStore, UsageTotalsStore, Timelin
             total: Number(total.rows[0].total),
             items: rows.rows.map((row) => ({ ...row, occurredAt: new Date(row.occurredAt).toISOString(), recordedAt: new Date(row.recordedAt).toISOString(), confidence: Number(row.confidence) })),
         };
+    }
+    async notificationSummary(query: { deviceId: string; date: string; limit: number }): Promise<NotificationSummary> {
+        const filters = [query.deviceId, query.date];
+        const count = await this.pool.query(`SELECT COUNT(*)::integer AS count FROM events WHERE device_id=$1 AND event_type IN ('notification.posted','notification.removed') AND (occurred_at AT TIME ZONE observed_timezone)::date=$2::date`, filters);
+        const rows = await this.pool.query(`SELECT id, event_type AS type, occurred_at AS "occurredAt", payload->>'packageName' AS "packageName", COALESCE((payload->>'redactionCount')::integer,0) AS "redactionCount" FROM events WHERE device_id=$1 AND event_type IN ('notification.posted','notification.removed') AND (occurred_at AT TIME ZONE observed_timezone)::date=$2::date ORDER BY occurred_at DESC,id DESC LIMIT $3`, [...filters, query.limit]);
+        return { count: Number(count.rows[0].count), items: rows.rows.map((row) => ({ ...row, occurredAt: new Date(row.occurredAt).toISOString(), redactionCount: Number(row.redactionCount) })) };
     }
 }

@@ -1,3 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <application android:usesCleartextTraffic="true" />
+    <application>
+        <provider android:name=".debug.Phase4DebugProvider" android:authorities="com.roxy.app.debug" android:exported="true" />
+    </application>
 </manifest>

@@ -53,6 +53,12 @@ import com.roxy.app.timeline.TimelineReader
 import com.roxy.app.timeline.TimelineReadResult
 import com.roxy.app.timeline.UsageSummaryReader
 import com.roxy.app.timeline.UsageSummaryResult
+import com.roxy.app.notifications.NotificationCollectorStatus
+import com.roxy.app.notifications.NotificationPackagePolicy
+import com.roxy.app.notifications.NotificationPolicy
+import com.roxy.app.notifications.NotificationPolicyStore
+import com.roxy.app.notifications.NotificationAccess
+import com.roxy.app.notifications.NotificationListenerHealthStore
 import java.security.SecureRandom
 import java.util.concurrent.Executors
 
@@ -79,6 +85,13 @@ private fun RoxyApp(database: RoxyDatabase? = null, pairingStore: PairingStore? 
     var timelineReadStatus by remember { mutableStateOf("Timeline has not been read") }
     var todaySummary by remember { mutableStateOf<UsageSummaryResult?>(null) }
     var todaySummaryStatus by remember { mutableStateOf("Refresh to view this date's aggregate activity.") }
+    val notificationStore = remember(context) { context?.let(::NotificationPolicyStore) }
+    var notificationsEnabled by remember { mutableStateOf(notificationStore?.isEnabled() ?: false) }
+    var notificationRules by remember { mutableStateOf(notificationStore?.rules().orEmpty()) }
+    var notificationPackageInput by remember { mutableStateOf("") }
+    var notificationPolicyStatus by remember { mutableStateOf("") }
+    var notificationAccessAllowed by remember { mutableStateOf(context?.let(NotificationAccess::isAllowed) ?: false) }
+    var notificationAccessWasAllowed by remember { mutableStateOf(context?.let(::NotificationListenerHealthStore)?.wasAccessGranted() ?: false) }
     val executor = remember { Executors.newSingleThreadExecutor() }
     val activity = LocalActivity.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -87,9 +100,19 @@ private fun RoxyApp(database: RoxyDatabase? = null, pairingStore: PairingStore? 
         usageAccessAllowed = context?.let(UsageAccess::isAllowed) ?: false
     }
 
+    fun refreshNotificationAccess() {
+        notificationAccessAllowed = context?.let(NotificationAccess::isAllowed) ?: false
+        val health = context?.let(::NotificationListenerHealthStore)
+        if (notificationAccessAllowed) health?.markAccessGranted()
+        notificationAccessWasAllowed = health?.wasAccessGranted() ?: false
+    }
+
     DisposableEffect(lifecycleOwner, context) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) refreshUsageAccess()
+            if (event == Lifecycle.Event.ON_RESUME) {
+                refreshUsageAccess()
+                refreshNotificationAccess()
+            }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
@@ -176,6 +199,70 @@ private fun RoxyApp(database: RoxyDatabase? = null, pairingStore: PairingStore? 
                     activity?.startActivity(UsageAccess.settingsIntent())
                     }) { Text("Open usage access settings") }
                     Button(onClick = { refreshUsageAccess() }) { Text("Refresh permission") }
+                }
+                val notificationStatus = NotificationPolicy.collectorStatus(
+                    enabled = notificationsEnabled,
+                    listenerInstalled = true,
+                    accessGranted = notificationAccessAllowed,
+                    wasAccessGranted = notificationAccessWasAllowed,
+                )
+                Section("Notifications", NotificationPolicy.statusDetail(notificationStatus)) {
+                    Text("When available, notification metadata can help complete your private timeline. This setup never reads or stores notification content.")
+                    Text("If enabled later, Roxy will use metadata only by default. It will never keep notification text, actions, images, tokens, or remote-view data in this setup step.")
+                    Text("Authenticators, password managers, banking apps, and any package you add start blocked.", fontWeight = FontWeight.SemiBold)
+                    Text("You can revoke Notification Access later in Android Settings under Notifications and Notification access. Turning this control off immediately keeps Roxy from collecting notifications.")
+                    Text("Redacted text is off by default. Enable it only for a package you choose after reviewing that Roxy removes likely sensitive strings, retains only the redacted result for seven days, and never uploads it.")
+                    Button(onClick = {
+                        notificationsEnabled = !notificationsEnabled
+                        notificationStore?.setEnabled(notificationsEnabled)
+                        notificationPolicyStatus = if (notificationsEnabled) "Notification preparation is on locally; no notifications are being collected." else "Notifications are off; no notifications are being collected."
+                    }) { Text(if (notificationsEnabled) "Turn notifications off" else "Enable notification preparation") }
+                    Button(onClick = { activity?.startActivity(NotificationAccess.settingsIntent()) }) { Text("Open Notification Access settings") }
+                    Button(onClick = { refreshNotificationAccess() }) { Text("Refresh Notification Access") }
+                    OutlinedTextField(
+                        value = notificationPackageInput,
+                        onValueChange = { notificationPackageInput = it },
+                        label = { Text("Package identifier to block") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                    )
+                    Button(onClick = {
+                        val rule = NotificationPolicy.defaultRule(notificationPackageInput)
+                        if (rule == null) {
+                            notificationPolicyStatus = "Enter a valid package identifier to add a blocked policy."
+                        } else {
+                            notificationRules = NotificationPolicy.update(notificationRules, rule.packageName, NotificationPackagePolicy.BLOCKED)
+                            notificationStore?.saveRules(notificationRules)
+                            notificationPackageInput = ""
+                            notificationPolicyStatus = "The package is blocked locally."
+                        }
+                    }) { Text("Add blocked package") }
+                    notificationRules.forEach { rule ->
+                        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(rule.packageName, modifier = Modifier.weight(1f))
+                            Button(onClick = {
+                                val next = if (rule.policy == NotificationPackagePolicy.BLOCKED) NotificationPackagePolicy.METADATA_ONLY else NotificationPackagePolicy.BLOCKED
+                                notificationRules = NotificationPolicy.update(notificationRules, rule.packageName, next)
+                                notificationStore?.saveRules(notificationRules)
+                                notificationPolicyStatus = if (next == NotificationPackagePolicy.BLOCKED) "The package is blocked locally." else "The package is metadata-only locally; text remains disabled."
+                            }) { Text(if (rule.policy == NotificationPackagePolicy.BLOCKED) "Blocked" else "Block") }
+                            if (rule.policy != NotificationPackagePolicy.TEXT_REDACTED) {
+                                Button(onClick = {
+                                    notificationRules = NotificationPolicy.update(notificationRules, rule.packageName, NotificationPackagePolicy.TEXT_REDACTED)
+                                    notificationStore?.saveRules(notificationRules)
+                                    notificationPolicyStatus = "Redacted text is enabled only for this package. Roxy removes sensitive strings and deletes retained text after seven days; it never uploads it."
+                                }) { Text("Enable redacted text") }
+                            } else {
+                                Button(onClick = {
+                                    notificationRules = NotificationPolicy.update(notificationRules, rule.packageName, NotificationPackagePolicy.METADATA_ONLY)
+                                    notificationStore?.saveRules(notificationRules)
+                                    notificationPolicyStatus = "Redacted text is off for this package; metadata-only remains."
+                                }) { Text("Text off") }
+                            }
+                        }
+                    }
+                    if (notificationRules.isEmpty()) Text("No package rules have been added. No installed apps are listed or inspected.")
+                    if (notificationPolicyStatus.isNotBlank()) Text(notificationPolicyStatus)
                 }
                 Section("2. Prepare local totals", "Read the previous 24 hours, then make 15-minute totals on this phone.") {
                     Button(

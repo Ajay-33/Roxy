@@ -11,6 +11,11 @@ const fixture = {
 
 test("accepts the synthetic event fixture", () => assert.equal(eventEnvelopeV1Schema.safeParse(fixture).success, true));
 test("rejects an invalid fixture", () => assert.equal(eventEnvelopeV1Schema.safeParse({ ...fixture, schemaVersion: 2 }).success, false));
+test("accepts metadata-only notification events and rejects text", () => {
+  const notification = { ...fixture, type: "notification.posted", source: "android.notification_listener", payload: { packageName: "example.synthetic", identityDigest: "a".repeat(64), redactionCount: 0 } };
+  assert.equal(eventEnvelopeV1Schema.safeParse(notification).success, true);
+  assert.equal(eventEnvelopeV1Schema.safeParse({ ...notification, payload: { ...notification.payload, body: "not allowed" } }).success, false);
+});
 test("rejects non-v7 identifiers, invalid timezones, and invalid confidence", () => {
   assert.equal(eventEnvelopeV1Schema.safeParse({ ...fixture, id: "0195bffc-8f93-4c34-8a8f-123456789abc" }).success, false);
   assert.equal(eventEnvelopeV1Schema.safeParse({ ...fixture, timezone: "not/a-timezone" }).success, false);

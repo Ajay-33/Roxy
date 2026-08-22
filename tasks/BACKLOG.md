@@ -47,6 +47,20 @@ This is an ordered index, not a detailed task specification. Expand only the nex
 - T-0404 On-device sensitive-field redaction.
 - T-0405 Selected-app text mode and seven-day retention.
 - T-0406 Physical-phone privacy, reliability, and battery test.
+- T-0407 Notification metadata contract and authenticated server persistence.
+- T-0408 Android notification queue and WorkManager sync.
+- T-0409 Owner-authenticated notification timeline/dashboard.
+- T-0410 End-to-end phone-to-dashboard qualification and battery measurement plan.
+
+## Phase 4.2 — Automatic collection and owner dashboard integration
+
+The existing manual diagnostic controls are not the owner product. Replace them only after each collector has a deterministic, visible, battery-bounded background path and an authenticated owner-facing read model.
+
+- T-0411 Automatic app-usage collection, aggregation, queueing, and bounded WorkManager sync.
+- T-0412 Collector health/control model: enablement, permission/revocation, last observation, last sync, queue, failure, and battery estimates.
+- T-0413 Authenticated Android dashboard: Today, usage, notification timeline/counts, completeness, and collector health from real local/server data.
+- T-0414 Authenticated web dashboard integration: replace synthetic preview data with a server-session owner boundary and real read-only analytics.
+- T-0415 Phone-to-hosted-server-to-dashboard qualification with automatic collection; no manual operational buttons in the normal owner flow.
 
 ## Phase 5 — Location and visits
 

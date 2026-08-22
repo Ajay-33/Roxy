@@ -38,11 +38,25 @@ export const usageSummaryQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(20).default(5),
 }).strict();
 export type UsageSummaryQuery = z.infer<typeof usageSummaryQuerySchema>;
+export const notificationSummaryQuerySchema = z.object({ deviceId: z.string().min(1).max(128), date: localDateSchema, limit: z.coerce.number().int().min(1).max(100).default(50) }).strict();
+export type NotificationSummaryQuery = z.infer<typeof notificationSummaryQuerySchema>;
 
-export const eventEnvelopeV1Schema = z.object({
+const notificationPayloadSchema = z.object({
+  packageName: z.string().regex(/^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z][A-Za-z0-9_]*)+$/),
+  identityDigest: z.string().regex(/^[0-9a-f]{64}$/i),
+  redactionCount: z.number().int().min(0).max(100).default(0),
+}).strict();
+
+const eventEnvelopeBaseSchema = z.object({
   id: uuidV7Schema, schemaVersion: z.literal(1), deviceId: z.string().min(1),
   type: z.string().regex(/^[a-z][a-z0-9]*(\.[a-z][a-z0-9_]*)+$/), occurredAt: z.string().datetime(), recordedAt: z.string().datetime(),
   timezone: timezoneSchema, source: z.string().regex(/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/), sensitivity: z.enum(["private", "highly_sensitive"]),
   payload: z.record(z.unknown()), quality: z.object({ confidence: z.number().min(0).max(1), isDerived: z.boolean() }),
+});
+export const eventEnvelopeV1Schema = eventEnvelopeBaseSchema.superRefine((event, context) => {
+  if (event.type === "notification.posted" || event.type === "notification.removed") {
+    const parsed = notificationPayloadSchema.safeParse(event.payload);
+    if (!parsed.success) context.addIssue({ code: z.ZodIssueCode.custom, message: "Expected metadata-only notification payload", path: ["payload"] });
+  }
 });
 export type EventEnvelopeV1 = z.infer<typeof eventEnvelopeV1Schema>;

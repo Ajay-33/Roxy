@@ -49,6 +49,16 @@ The web review foundation contains only clearly synthetic preview values. It doe
 
 ## Notification redaction
 
+Notification collection remains off until the owner enables its local control and grants Android Notification Access after a listener is introduced. Package policies are stored locally before that listener exists: every owner-added package begins blocked, and an owner must explicitly change it to metadata-only. The setup flow does not enumerate installed apps or collect notification metadata or text.
+
+When enabled in Phase 4, the listener records metadata only for explicitly metadata-only packages. It makes no network calls and stores no notification extras, title/body text, actions, intents, images, tokens, remote-view data, or people/contact data. Its local metadata table is not part of the sync queue until a separately scoped upload design exists.
+
+Notification lifecycle updates are keyed only by a local SHA-256 digest of the package identifier and Android's opaque notification key. The original key is never persisted or logged; group summaries and missing keys are excluded. A digest collision is theoretically possible, but fails toward under-counting rather than exposing or inflating notification data.
+
+Any future text path must pass an on-device allowlisted sanitizer before persistence. Unsupported containers (actions, intents, images, remote views, and tokens) are dropped; likely OTP, account/card, phone, and email strings are replaced without retaining the original. The present metadata-only listener never invokes this sanitizer or reads notification extras.
+
+Redacted text is disabled by default and can only be enabled through a package-specific local owner action. It is local-only, never enters the sync queue, and expires after seven days; retention deletion reports only a safe count.
+
 Before upload:
 
 - respect per-package block/metadata/text policy;
