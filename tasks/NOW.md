@@ -1,3 +1,3 @@
 # Now: no active implementation task
 
-T-0412 is verified: Roxy has a live, payload-free collector-health model. T-0413 is next: replace the diagnostic app surface with the owner dashboard and navigation using this real data.
+T-0413 is verified: Roxy’s normal Android experience is now a tabbed owner dashboard powered by live collector health and authenticated aggregate reads. T-0414 is next: a server-session-authenticated web dashboard.
