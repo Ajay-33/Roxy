@@ -2,12 +2,11 @@
 
 ## Data principles
 
-1. Explicit opt-in per collector.
-2. Collect the least detailed signal that supports a user-visible feature.
-3. Redact on the phone when possible.
-4. Keep exact raw data briefly; keep compact derived facts longer.
-5. Make pause, inspection, correction, export, and deletion easy.
-6. Never make collection hidden or resistant to user control.
+1. Collect the least detailed signal that supports a user-visible feature.
+2. Redact on the phone when possible.
+3. Keep exact raw data briefly; keep compact derived facts longer.
+4. Make pause, inspection, correction, export, and deletion easy.
+5. Never make collection hidden or resistant to user control.
 
 ## Classification
 
@@ -21,7 +20,7 @@
 ## Collector defaults
 
 - App usage: enabled only after Usage Access explanation. Once paired, Roxy uses unique 30-minute WorkManager collection to retain local observations and create settled 15-minute aggregate buckets; only those aggregate buckets may be queued for constrained sync.
-- Notifications: metadata-only; block authenticators, password managers, banking, and user-selected packages.
+- Notifications: metadata-only by default after Android Notification Access is granted; the owner can block or restrict individual packages at any time.
 - Location: Balanced; exact points compacted to visits and removed on schedule.
 - Optional connectors: disabled and absent from v1 permissions.
 
@@ -53,9 +52,9 @@ The web review foundation contains only clearly synthetic preview values. It doe
 
 ## Notification redaction
 
-Notification collection remains off until the owner enables its local control and grants Android Notification Access after a listener is introduced. Package policies are stored locally before that listener exists: every owner-added package begins blocked, and an owner must explicitly change it to metadata-only. The setup flow does not enumerate installed apps or collect notification metadata or text.
+Notification collection begins as metadata-only after the owner grants Android Notification Access. Package policies are stored locally and let the owner block or restrict individual packages at any time.
 
-When enabled in Phase 4, the listener records metadata only for explicitly metadata-only packages. It makes no network calls and stores no notification extras, title/body text, actions, intents, images, tokens, remote-view data, or people/contact data. After a newly deduplicated metadata row is stored, Roxy writes an allowlisted metadata envelope to its local outbox and asks constrained WorkManager batching to sync it. Notification text and redaction rows never enter that outbox.
+When enabled in Phase 4, the listener records metadata for packages unless the owner has locally blocked or restricted them. It makes no network calls and stores no notification extras, title/body text, actions, intents, images, tokens, remote-view data, or people/contact data. After a newly deduplicated metadata row is stored, Roxy writes an allowlisted metadata envelope to its local outbox and asks constrained WorkManager batching to sync it. Notification text and redaction rows never enter that outbox.
 
 Notification lifecycle updates are keyed only by a local SHA-256 digest of the package identifier and Android's opaque notification key. The original key is never persisted or logged; group summaries and missing keys are excluded. A digest collision is theoretically possible, but fails toward under-counting rather than exposing or inflating notification data.
 

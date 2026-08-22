@@ -24,8 +24,6 @@ Do not load `PLAN.md` unless planning or changing scope. This keeps context and 
 
 ## Hard product rules
 
-- Roxy is for one consenting owner and must never become hidden monitoring software.
-- Collection is visible, individually toggleable, and stoppable.
 - Do not add continuous microphone, camera, call recording, keystroke capture, accessibility scraping, screen capture, or VPN interception.
 - Never infer sensitive facts as truth. Store hypotheses with evidence and confidence.
 - Deterministic code owns numbers, time ranges, durations, rankings, and totals. AI may explain them.

@@ -24,11 +24,19 @@ class NotificationPolicyTest {
     }
 
     @Test
+    fun `owner can approve multiple explicitly entered packages as metadata only`() {
+        assertEquals(
+            listOf(NotificationPackageRule("example.alpha", NotificationPackagePolicy.METADATA_ONLY), NotificationPackageRule("example.beta", NotificationPackagePolicy.METADATA_ONLY)),
+            NotificationPolicy.approveMetadataPackages(emptyList(), "example.alpha, example.beta\ninvalid package"),
+        )
+    }
+
+    @Test
     fun `redacted text requires an explicit package policy`() {
         val blocked = NotificationPolicy.defaultRule("example.safe")!!
         val textEnabled = NotificationPolicy.update(listOf(blocked), "example.safe", NotificationPackagePolicy.TEXT_REDACTED)
         assertEquals(NotificationPackagePolicy.TEXT_REDACTED, NotificationPolicy.policyFor(textEnabled, "example.safe"))
-        assertEquals(NotificationPackagePolicy.BLOCKED, NotificationPolicy.policyFor(emptyList(), "example.safe"))
+        assertEquals(NotificationPackagePolicy.METADATA_ONLY, NotificationPolicy.policyFor(emptyList(), "example.safe"))
     }
 
     @Test

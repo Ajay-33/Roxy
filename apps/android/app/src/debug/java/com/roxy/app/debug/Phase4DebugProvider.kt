@@ -35,6 +35,13 @@ class Phase4DebugProvider : ContentProvider() {
                 )
                 store.saveRules(rules); store.setEnabled(true); Bundle().apply { putBoolean("ok", true) }
             }
+            "approve_metadata_package" -> {
+                val packageName = arg ?: return Bundle().apply { putBoolean("ok", false) }
+                val rule = NotificationPolicy.defaultRule(packageName) ?: return Bundle().apply { putBoolean("ok", false) }
+                store.saveRules(NotificationPolicy.update(store.rules(), rule.packageName, NotificationPackagePolicy.METADATA_ONLY))
+                store.setEnabled(true)
+                Bundle().apply { putBoolean("ok", true) }
+            }
             "status" -> Bundle().apply {
                 putInt("notificationMetadataCount", database.notificationMetadataDao().count())
                 putInt("pendingSyncCount", database.localEventDao().countWithState(SyncState.PENDING))

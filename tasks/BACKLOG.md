@@ -61,6 +61,8 @@ The existing manual diagnostic controls are not the owner product. Replace them 
 - T-0413 Authenticated Android dashboard: Today, usage, notification timeline/counts, completeness, and collector health from real local/server data.
 - T-0414 Authenticated web dashboard integration (deferred): optional larger-screen review only; requires a dedicated owner-session design and must never reuse the device pairing credential.
 - T-0415 Phone-to-hosted-server-to-dashboard qualification with automatic collection; no manual operational buttons in the normal owner flow.
+- T-0416 Restore explicit notification-package metadata controls in Settings and qualify a real owner-approved package.
+- T-0417 Deterministic notification metadata analytics: hourly volume, app ranking, bursts, and owner dashboard cards.
 
 ## Phase 5 — Location and visits
 

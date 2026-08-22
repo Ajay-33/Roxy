@@ -1,3 +1,3 @@
-# Now: Phase 4.2 implementation complete; battery qualification running
+# Now: T-0417 — Deterministic notification metadata analytics
 
-Automatic app-usage collection, metadata-only notification callbacks, constrained sync, owner dashboard, and visible proof are verified. The remaining Phase 4.2 release gate is the documented six-day real-use battery measurement.
+Default metadata collection is verified. T-0417 turns that real event stream into owner-visible, deterministic analytics without reading notification content.

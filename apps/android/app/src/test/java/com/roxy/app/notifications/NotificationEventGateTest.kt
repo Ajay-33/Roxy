@@ -11,7 +11,7 @@ class NotificationEventGateTest {
     @Test
     fun `disabled and blocked packages create no metadata event`() {
         assertNull(NotificationEventGate.create(false, allowed, "example.safe", "notification.posted", 10, 11, ZoneId.of("UTC"), "id", "key", false))
-        assertNull(NotificationEventGate.create(true, emptyList(), "example.blocked", "notification.posted", 10, 11, ZoneId.of("UTC"), "id", "key", false))
+        assertNull(NotificationEventGate.create(true, listOf(NotificationPackageRule("example.blocked", NotificationPackagePolicy.BLOCKED)), "example.blocked", "notification.posted", 10, 11, ZoneId.of("UTC"), "id", "key", false))
     }
 
     @Test

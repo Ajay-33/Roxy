@@ -5,7 +5,7 @@ import android.content.Context
 class NotificationPolicyStore(context: Context) {
     private val preferences = context.getSharedPreferences("notification_policy", Context.MODE_PRIVATE)
 
-    fun isEnabled(): Boolean = preferences.getBoolean(ENABLED_KEY, false)
+    fun isEnabled(): Boolean = preferences.getBoolean(ENABLED_KEY, true)
 
     fun setEnabled(enabled: Boolean) {
         preferences.edit().putBoolean(ENABLED_KEY, enabled).apply()

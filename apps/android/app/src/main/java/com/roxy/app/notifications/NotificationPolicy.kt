@@ -33,8 +33,13 @@ object NotificationPolicy {
             .sortedBy { it.packageName }
     }
 
+    fun approveMetadataPackages(rules: List<NotificationPackageRule>, enteredPackages: String): List<NotificationPackageRule> =
+        enteredPackages.split(Regex("[,\\s]+"))
+            .filter { it.isNotBlank() }
+            .fold(rules) { current, packageName -> update(current, packageName, NotificationPackagePolicy.METADATA_ONLY) }
+
     fun policyFor(rules: List<NotificationPackageRule>, packageName: String): NotificationPackagePolicy =
-        rules.firstOrNull { it.packageName == packageName }?.policy ?: NotificationPackagePolicy.BLOCKED
+        rules.firstOrNull { it.packageName == packageName }?.policy ?: NotificationPackagePolicy.METADATA_ONLY
 
     fun collectorStatus(
         enabled: Boolean,
