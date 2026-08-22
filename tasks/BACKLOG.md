@@ -64,6 +64,17 @@ The existing manual diagnostic controls are not the owner product. Replace them 
 - T-0416 Restore explicit notification-package metadata controls in Settings and qualify a real owner-approved package.
 - T-0417 Deterministic notification metadata analytics: hourly volume, app ranking, bursts, and owner dashboard cards.
 
+## Phase 4.3 — Notification intelligence and dashboard experience
+
+Phase 4.2 proved the automatic phone-to-cloud pipeline. Phase 4.3 makes that existing metadata useful and legible for the owner. It must not turn notification objects or updates into claims about the number of messages, and it must not add notification content, global taps, keystroke capture, accessibility scraping, or a new collector.
+
+- T-0418 Notification lifecycle accounting: repair notification identity/lifecycle modelling so distinct notification objects, updates, arrivals, and removals are counted separately and deterministically; preserve metadata-only handling and add database migration/rollback notes.
+- T-0419 Notification analytics read model: add authenticated daily/weekly/monthly aggregates, per-app ranking, hourly distributions, update/clear balance, burst windows, and honest empty/completeness states from the repaired event model.
+- T-0420 Android notification intelligence dashboard: replace the raw horizontal callback list with an owner-facing visual dashboard: summary cards, hourly bars/heatmap, source ranking bars, arrival/clear balance, date-range controls, and app drill-down. Resolve labels locally only while rendering.
+- T-0421 Deterministic patterns and explanation copy: calculate transparent baselines and change signals from stored aggregates only; present plain-language observations with exact supporting counts/time ranges and no claims about message meaning, mood, productivity, or intent.
+- T-0422 Dashboard information architecture and settings cleanup: separate everyday analytics from pairing, permissions, diagnostics, and developer tools; remove obsolete manual operational controls from normal owner flow and make every remaining action self-explanatory.
+- T-0423 Phase 4.3 end-to-end qualification: verify lifecycle accounting, aggregate correctness, visual states, offline backlog recovery, and a battery/bytes measurement plan on the paired phone and hosted server.
+
 ## Phase 5 — Location and visits
 
 - T-0501 Location permission sequence and Balanced/Trip controls.
