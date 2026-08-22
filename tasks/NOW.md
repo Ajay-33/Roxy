@@ -1,3 +1,3 @@
-# Now: no active implementation task
+# Now: Phase 4.2 implementation complete; battery qualification running
 
-T-0413 is verified: Roxy’s normal Android experience is now a tabbed owner dashboard powered by live collector health and authenticated aggregate reads. T-0414 is next: a server-session-authenticated web dashboard.
+Automatic app-usage collection, metadata-only notification callbacks, constrained sync, owner dashboard, and visible proof are verified. The remaining Phase 4.2 release gate is the documented six-day real-use battery measurement.

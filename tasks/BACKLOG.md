@@ -59,7 +59,7 @@ The existing manual diagnostic controls are not the owner product. Replace them 
 - T-0411 Automatic app-usage collection, aggregation, queueing, and bounded WorkManager sync.
 - T-0412 Collector health/control model: enablement, permission/revocation, last observation, last sync, queue, failure, and battery estimates.
 - T-0413 Authenticated Android dashboard: Today, usage, notification timeline/counts, completeness, and collector health from real local/server data.
-- T-0414 Authenticated web dashboard integration: replace synthetic preview data with a server-session owner boundary and real read-only analytics.
+- T-0414 Authenticated web dashboard integration (deferred): optional larger-screen review only; requires a dedicated owner-session design and must never reuse the device pairing credential.
 - T-0415 Phone-to-hosted-server-to-dashboard qualification with automatic collection; no manual operational buttons in the normal owner flow.
 
 ## Phase 5 — Location and visits
