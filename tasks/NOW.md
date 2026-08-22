@@ -1,3 +1,3 @@
-# Now: T-0421 — Deterministic notification activity patterns
+# Now: T-0501 — Location permission sequence and Balanced/Trip controls
 
-T-0420 is complete. Connect transparent, evidence-backed notification-activity comparisons to historical aggregate data without making claims about notification meaning.
+Phase 4.3 is complete with its multi-day notification battery measurement explicitly deferred. Begin Phase 5 with permission and owner-control design only; do not start collection until T-0501 acceptance checks are met.

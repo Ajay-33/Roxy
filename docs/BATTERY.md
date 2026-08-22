@@ -87,7 +87,7 @@ The notification collector is callback-driven and its owner dashboard is refresh
 
 | Day | Mode | Start/end battery | Charging periods | Screen-on time | Travel / battery saver | Roxy event count | Queue / sync result | Notes |
 |---|---|---|---|---|---|---:|---|---|
-| 1 | Baseline (notifications disabled) |  |  |  |  | n/a | n/a |  |
+| 1 | Baseline (notifications disabled) | Deferred | n/a | n/a | n/a | n/a | n/a | Owner deferred the multi-day qualification on 2026-08-22; no result recorded |
 | 2 | Baseline (notifications disabled) |  |  |  |  | n/a | n/a |  |
 | 3 | Baseline (notifications disabled) |  |  |  |  | n/a | n/a |  |
 | 4 | Enabled (approved metadata only) |  |  |  |  |  |  |  |
@@ -95,3 +95,5 @@ The notification collector is callback-driven and its owner dashboard is refresh
 | 6 | Enabled (approved metadata only) |  |  |  |  |  |  |  |
 
 Compare the two three-day medians. Keep the default only if the result remains within the 0–8% target range; investigate above 8%, and block the default above 12%. Do not enable notification text upload during this measurement.
+
+The Phase 4.3 notification measurement is deferred by the owner as of 2026-08-22. It is not a passed battery result and must be restarted from day 1 before a release claim depends on it.

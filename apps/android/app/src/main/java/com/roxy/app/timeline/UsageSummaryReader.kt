@@ -47,5 +47,20 @@ object UsageSummaryReader {
     internal fun displayLabel(resolvedLabel: String?, id: String): TodayAppLabel =
         resolvedLabel?.takeIf { it.isNotBlank() }
             ?.let { TodayAppLabel(it, resolvedLocally = true) }
-            ?: TodayAppLabel(id, resolvedLocally = false)
+            ?: TodayAppLabel(humanizePackage(id), resolvedLocally = false)
+
+    private fun humanizePackage(id: String): String {
+        val parts = id.split('.').filter { it.isNotBlank() }.toMutableList()
+        while (parts.size > 1 && parts.last().lowercase() in setOf("android", "app", "mobile", "client")) {
+            parts.removeAt(parts.lastIndex)
+        }
+        val candidate = parts.lastOrNull() ?: id
+        return candidate
+            .replace('_', ' ')
+            .replace('-', ' ')
+            .split(' ')
+            .joinToString(" ") { word ->
+                if (word.isEmpty()) "" else word.substring(0, 1).uppercase() + word.substring(1)
+            }
+    }
 }

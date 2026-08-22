@@ -71,11 +71,15 @@ class Phase4DebugProvider : ContentProvider() {
                 val digest = "0".repeat(64)
                 val rows = listOf(
                     NotificationMetadataEntity("debug-lifecycle-posted", "notification.posted", 100, 100, "UTC", SHELL_PACKAGE, digest, createdAtEpochMillis = 100),
+                    // Android reports a later active callback as posted; the lifecycle gate derives "updated".
                     NotificationMetadataEntity("debug-lifecycle-updated", "notification.posted", 100, 200, "UTC", SHELL_PACKAGE, digest, createdAtEpochMillis = 200),
                     NotificationMetadataEntity("debug-lifecycle-removed", "notification.removed", 100, 300, "UTC", SHELL_PACKAGE, digest, createdAtEpochMillis = 300),
                 )
                 val accepted = rows.count { database.notificationMetadataDao().insertLifecycle(it) != null }
                 Bundle().apply { putInt("acceptedLifecycleCallbacks", accepted) }
+            }
+            "clear_synthetic_lifecycle" -> Bundle().apply {
+                putInt("deletedLifecycleCallbacks", database.notificationMetadataDao().deleteForPackage(SHELL_PACKAGE))
             }
             "notification_summary_status" -> {
                 val pairing = PairingStore(appContext).read()
