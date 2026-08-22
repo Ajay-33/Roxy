@@ -39,6 +39,10 @@ Allowed: event ID, event type, schema version, byte count, status code, duration
 
 Forbidden: payload JSON, notification title/body, coordinates, place labels, prompts, retrieved memories, credentials, connection strings.
 
+## Collector health
+
+The owner-facing health model contains only collector state, permission/pairing requirements, last-observation and last-sync timestamps, queue counts, and safe error codes. It intentionally excludes app labels, package identifiers, duration, notification content, coordinates, payload JSON, and credentials.
+
 ## Owner-facing labels
 
 The Today dashboard may resolve an aggregate app identifier to its installed display label on the owner's phone. That label is rendered only in the local UI: it is not persisted by the dashboard, uploaded as a new data class, logged, placed in fixtures, committed, or sent to AI.

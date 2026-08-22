@@ -9,6 +9,7 @@ import android.net.Uri
 import android.os.Bundle
 import com.roxy.app.data.RoxyDatabase
 import com.roxy.app.data.SyncState
+import com.roxy.app.health.CollectorHealthReader
 import com.roxy.app.notifications.NotificationPackagePolicy
 import com.roxy.app.notifications.NotificationAccess
 import com.roxy.app.notifications.NotificationListenerHealthStore
@@ -59,6 +60,13 @@ class Phase4DebugProvider : ContentProvider() {
                         putInt("itemCount", result.items.size)
                     }
                     is NotificationSummaryResult.Error -> Bundle().apply { putString("result", result.code) }
+                }
+            }
+            "collector_health" -> Bundle().apply {
+                CollectorHealthReader.read(appContext, database).forEach { health ->
+                    putString("${health.collector}State", health.state)
+                    putInt("${health.collector}Pending", health.pendingCount)
+                    putString("${health.collector}Failure", health.failureCode)
                 }
             }
             "reset_synthetic_policy" -> {
