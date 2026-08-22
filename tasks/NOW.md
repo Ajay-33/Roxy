@@ -1,3 +1,3 @@
 # Now: no active implementation task
 
-T-0409 is verified: the paired Android owner can explicitly refresh real, metadata-only notification activity from the protected hosted service. T-0410 is the next qualification/battery-measurement task before the broader automatic-collection and dashboard work.
+T-0410 is complete: the automatic notification path is functionally qualified and has a six-day battery measurement record ready. It is not claimed battery-qualified before those real-use periods. T-0411 is next and can proceed independently with automatic app-usage collection.

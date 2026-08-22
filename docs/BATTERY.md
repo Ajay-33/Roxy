@@ -80,3 +80,18 @@ Decision and tuning:
 ```
 
 Do not claim battery success from an emulator or a few minutes of profiling.
+
+## Phase 4 notification collector measurement record
+
+The notification collector is callback-driven and its owner dashboard is refresh-only, so short functional tests do not establish battery impact. Complete this record before calling the collector release-ready:
+
+| Day | Mode | Start/end battery | Charging periods | Screen-on time | Travel / battery saver | Roxy event count | Queue / sync result | Notes |
+|---|---|---|---|---|---|---:|---|---|
+| 1 | Baseline (notifications disabled) |  |  |  |  | n/a | n/a |  |
+| 2 | Baseline (notifications disabled) |  |  |  |  | n/a | n/a |  |
+| 3 | Baseline (notifications disabled) |  |  |  |  | n/a | n/a |  |
+| 4 | Enabled (approved metadata only) |  |  |  |  |  |  |  |
+| 5 | Enabled (approved metadata only) |  |  |  |  |  |  |  |
+| 6 | Enabled (approved metadata only) |  |  |  |  |  |  |  |
+
+Compare the two three-day medians. Keep the default only if the result remains within the 0–8% target range; investigate above 8%, and block the default above 12%. Do not enable notification text upload during this measurement.
