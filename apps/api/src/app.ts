@@ -1,7 +1,7 @@
 import Fastify from "fastify";
 import { eventEnvelopeV1Schema, notificationSummaryQuerySchema, timelineQuerySchema, usageSummaryQuerySchema } from "@roxy/contracts";
 import { timingSafeEqual } from "node:crypto";
-import type { EventStore, NotificationSummaryStore, TimelineStore, UsageSummaryStore, UsageTotalsStore } from "@roxy/database";
+import type { EventStore, NotificationAnalyticsStore, NotificationSummaryStore, TimelineStore, UsageSummaryStore, UsageTotalsStore } from "@roxy/database";
 
 const maxBatchEvents = 250;
 const maxBodyBytes = 256 * 1024;
@@ -29,7 +29,7 @@ function encodeTimelineCursor(item: TimelineCursor): string {
     return Buffer.from(JSON.stringify(item)).toString("base64url");
 }
 
-export function buildApp(deviceApiKey: string, eventStore: EventStore & Partial<UsageTotalsStore & TimelineStore & UsageSummaryStore & NotificationSummaryStore>) {
+export function buildApp(deviceApiKey: string, eventStore: EventStore & Partial<UsageTotalsStore & TimelineStore & UsageSummaryStore & NotificationSummaryStore & NotificationAnalyticsStore>) {
     if (deviceApiKey.length < 32) throw new Error("ROXY_DEVICE_API_KEY must be at least 32 characters");
     const app = Fastify({ bodyLimit: maxBodyBytes, logger: false });
 
@@ -81,6 +81,13 @@ export function buildApp(deviceApiKey: string, eventStore: EventStore & Partial<
         const parsed = notificationSummaryQuerySchema.safeParse(request.query);
         if (!parsed.success) return reply.code(400).send({ error: "invalid_notification_summary_query" });
         return eventStore.notificationSummary(parsed.data);
+    });
+    app.get("/v1/notifications/analytics", async (request, reply) => {
+        if (!credentialsMatch(request.headers.authorization, deviceApiKey)) return reply.code(401).send({ error: "unauthorized" });
+        if (!eventStore.notificationAnalytics) return reply.code(501).send({ error: "notification_analytics_unavailable" });
+        const parsed = notificationSummaryQuerySchema.safeParse(request.query);
+        if (!parsed.success) return reply.code(400).send({ error: "invalid_notification_analytics_query" });
+        return eventStore.notificationAnalytics(parsed.data);
     });
     app.get("/v1/timeline", async (request, reply) => {
         if (!credentialsMatch(request.headers.authorization, deviceApiKey)) return reply.code(401).send({ error: "unauthorized" });

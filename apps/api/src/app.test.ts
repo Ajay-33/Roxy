@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { buildApp } from "./app.ts";
-import type { EventStore, NotificationSummaryStore, TimelineStore, UsageSummaryStore, UsageTotalsStore } from "@roxy/database";
+import type { EventStore, NotificationAnalyticsStore, NotificationSummaryStore, TimelineStore, UsageSummaryStore, UsageTotalsStore } from "@roxy/database";
 
 const key = "synthetic-development-key-that-is-never-a-real-device-key";
 const event = { id: "0195bffc-8f93-7c34-8a8f-123456789abc", schemaVersion: 1, deviceId: "synthetic-device", type: "system.test_event", occurredAt: "2026-08-19T00:00:00.000Z", recordedAt: "2026-08-19T00:00:01.000Z", timezone: "Asia/Calcutta", source: "fixture.generator", sensitivity: "private", payload: { synthetic: true }, quality: { confidence: 1, isDerived: false } };
@@ -32,6 +32,10 @@ const notificationStore: EventStore & NotificationSummaryStore = { ...store, not
     assert.equal(query.deviceId, "synthetic-device"); assert.equal(query.date, "2026-08-19");
     return { count: 1, items: [{ id: "synthetic-notification", type: "notification.posted", occurredAt: "2026-08-19T10:00:00.000Z", packageName: "example.synthetic", redactionCount: 0 }] };
 } };
+const notificationAnalyticsStore: EventStore & NotificationAnalyticsStore = { ...store, notificationAnalytics: async (query) => {
+    assert.equal(query.deviceId, "synthetic-device"); assert.equal(query.date, "2026-08-19");
+    return { count: 3, postedCount: 2, removedCount: 1, hourly: [{ hour: 9, count: 2 }], topApps: [{ packageName: "example.synthetic", count: 3 }] };
+} };
 
 test("rejects missing credentials", async () => {
     const app = buildApp(key, store); const response = await app.inject({ method: "POST", url: "/v1/sync/events", payload: { events: [event] } });
@@ -52,6 +56,12 @@ test("returns an authenticated metadata-only notification summary", async () => 
     const app = buildApp(key, notificationStore); const headers = { authorization: `Bearer ${key}` };
     const response = await app.inject({ method: "GET", url: "/v1/notifications/summary?deviceId=synthetic-device&date=2026-08-19", headers });
     assert.equal(response.statusCode, 200); assert.equal(response.json().count, 1); assert.equal(response.json().items[0].body, undefined); await app.close();
+});
+test("returns authenticated deterministic notification analytics", async () => {
+    const app = buildApp(key, notificationAnalyticsStore); const headers = { authorization: `Bearer ${key}` };
+    const response = await app.inject({ method: "GET", url: "/v1/notifications/analytics?deviceId=synthetic-device&date=2026-08-19", headers });
+    assert.equal(response.statusCode, 200); assert.deepEqual(response.json(), { count: 3, postedCount: 2, removedCount: 1, hourly: [{ hour: 9, count: 2 }], topApps: [{ packageName: "example.synthetic", count: 3 }] });
+    const denied = await app.inject({ method: "GET", url: "/v1/notifications/analytics?deviceId=synthetic-device&date=2026-08-19" }); assert.equal(denied.statusCode, 401); await app.close();
 });
 test("returns authenticated seeded daily app totals", async () => {
     const app = buildApp(key, totalsStore); const headers = { authorization: `Bearer ${key}` };
