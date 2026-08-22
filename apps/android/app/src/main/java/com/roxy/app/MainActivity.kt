@@ -44,6 +44,7 @@ import com.roxy.app.usage.UsageAccess
 import com.roxy.app.usage.UsageQueryResult
 import com.roxy.app.usage.UsageStatsReader
 import com.roxy.app.usage.UsageCollector
+import com.roxy.app.usage.UsageCollectionScheduler
 import com.roxy.app.usage.UsageAggregation
 import com.roxy.app.usage.UsageObservation
 import com.roxy.app.data.UsageBucketEntity
@@ -70,6 +71,7 @@ import java.util.concurrent.Executors
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        UsageCollectionScheduler.reconcile(applicationContext)
         val database = RoxyDatabase.create(applicationContext)
         setContent { RoxyApp(database, PairingStore(applicationContext), applicationContext) }
     }
@@ -105,6 +107,7 @@ private fun RoxyApp(database: RoxyDatabase? = null, pairingStore: PairingStore? 
 
     fun refreshUsageAccess() {
         usageAccessAllowed = context?.let(UsageAccess::isAllowed) ?: false
+        context?.let(UsageCollectionScheduler::reconcile)
     }
 
     fun refreshNotificationAccess() {
@@ -374,7 +377,10 @@ private fun RoxyApp(database: RoxyDatabase? = null, pairingStore: PairingStore? 
                     Button(onClick = {
                     if (pairingStore == null) return@Button
                     runCatching { pairingStore.save(endpoint, credential); SyncScheduler.enqueue(context ?: return@Button) }
-                        .onSuccess { pairingStatus = "Paired; sync is scheduled only when network is available" }
+                        .onSuccess {
+                            UsageCollectionScheduler.reconcile(context ?: return@onSuccess)
+                            pairingStatus = "Paired; automatic usage collection and constrained sync are scheduled"
+                        }
                         .onFailure { pairingStatus = "Pairing needs an http(s) endpoint and a 32+ character credential" }
                     }) { Text("Save connection") }
                     Text(pairingStatus)

@@ -21,4 +21,11 @@ class UsageBucketExporterTest {
         assertEquals(listOf(bucket), UsageBucketExporter.unqueuedBuckets(listOf(bucket), emptySet()))
         assertTrue(UsageBucketExporter.unqueuedBuckets(listOf(bucket), active).isEmpty())
     }
+
+    @Test fun `only settled buckets can leave the phone`() {
+        val settled = UsageBucketEntity("example.alpha", 0, 1_200)
+        val stillOpen = UsageBucketEntity("example.beta", UsageAggregation.BUCKET_MILLIS, 600)
+
+        assertEquals(listOf(settled), UsageBucketExporter.settledBuckets(listOf(settled, stillOpen), UsageAggregation.BUCKET_MILLIS * 2))
+    }
 }

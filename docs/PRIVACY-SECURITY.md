@@ -20,7 +20,7 @@
 
 ## Collector defaults
 
-- App usage: enabled only after Usage Access explanation.
+- App usage: enabled only after Usage Access explanation. Once paired, Roxy uses unique 30-minute WorkManager collection to retain local observations and create settled 15-minute aggregate buckets; only those aggregate buckets may be queued for constrained sync.
 - Notifications: metadata-only; block authenticators, password managers, banking, and user-selected packages.
 - Location: Balanced; exact points compacted to visits and removed on schedule.
 - Optional connectors: disabled and absent from v1 permissions.

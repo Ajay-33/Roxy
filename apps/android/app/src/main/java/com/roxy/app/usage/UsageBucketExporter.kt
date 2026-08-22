@@ -13,7 +13,7 @@ import java.util.TimeZone
 object UsageBucketExporter {
     fun queue(database: RoxyDatabase, deviceId: String, observedTimezone: String = TimeZone.getDefault().id, now: Long = System.currentTimeMillis()): Int = database.runInTransaction<Int> {
         val usageDao = database.usageCollectionDao()
-        val buckets = unqueuedBuckets(usageDao.buckets(), usageDao.activeExportedBucketKeys().toSet())
+        val buckets = unqueuedBuckets(settledBuckets(usageDao.buckets(), now), usageDao.activeExportedBucketKeys().toSet())
         val exports = buckets.map { bucket ->
             val id = uuidV7()
             database.localEventDao().insert(LocalEventEntity(id, 1, deviceId, "usage.bucket", bucket.bucketStartEpochMillis, now, observedTimezone, "android.usage_stats", "private", payloadJson(bucket.packageName, bucket.durationMillis), 1.0, true, SyncState.PENDING, null, now))
@@ -24,6 +24,9 @@ object UsageBucketExporter {
 
     internal fun unqueuedBuckets(buckets: List<UsageBucketEntity>, activeExports: Set<UsageBucketExportKey>): List<UsageBucketEntity> =
         buckets.filter { UsageBucketExportKey(it.packageName, it.bucketStartEpochMillis) !in activeExports }
+
+    internal fun settledBuckets(buckets: List<UsageBucketEntity>, now: Long): List<UsageBucketEntity> =
+        buckets.filter { it.bucketStartEpochMillis + UsageAggregation.BUCKET_MILLIS <= now - UsageCollector.OVERLAP_MILLIS }
 
     internal fun payloadFields(packageName: String, durationMillis: Long): Map<String, Any> = mapOf(
         "packageName" to packageName,
