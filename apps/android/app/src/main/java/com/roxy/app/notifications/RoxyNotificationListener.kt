@@ -56,7 +56,7 @@ class RoxyNotificationListener : NotificationListenerService() {
             notificationKey = sbn.key,
             isGroupSummary = sbn.notification.flags and Notification.FLAG_GROUP_SUMMARY != 0,
         ) ?: return
-        val inserted = database.notificationMetadataDao().insert(
+        val stored = database.notificationMetadataDao().insertLifecycle(
             NotificationMetadataEntity(
                 id = event.id,
                 eventKind = event.eventKind,
@@ -68,13 +68,14 @@ class RoxyNotificationListener : NotificationListenerService() {
                 createdAtEpochMillis = now,
             ),
         )
-        if (inserted != -1L) {
+        if (stored != null) {
+            val storedEvent = event.copy(eventKind = stored.eventKind)
             PairingStore(applicationContext).read()?.let { pairing ->
-                NotificationMetadataExporter.queue(database, pairing, event)
+                NotificationMetadataExporter.queue(database, pairing, storedEvent)
                 SyncScheduler.enqueue(applicationContext)
             }
         }
-        if (NotificationPolicy.policyFor(policyStore.rules(), sbn.packageName) == NotificationPackagePolicy.TEXT_REDACTED) {
+        if (stored != null && NotificationPolicy.policyFor(policyStore.rules(), sbn.packageName) == NotificationPackagePolicy.TEXT_REDACTED) {
             val sanitized = NotificationSanitizer.sanitize(FutureNotificationContent(
                 title = sbn.notification.extras.getCharSequence(Notification.EXTRA_TITLE)?.toString(),
                 body = sbn.notification.extras.getCharSequence(Notification.EXTRA_TEXT)?.toString(),
@@ -83,7 +84,7 @@ class RoxyNotificationListener : NotificationListenerService() {
                 hasRemoteView = sbn.notification.contentView != null,
             )) ?: return
             database.notificationRedactedTextDao().deleteExpired(now)
-            database.notificationRedactedTextDao().insert(NotificationRedactedTextEntity(event.id, event.identityDigest, event.packageName, event.occurredAtEpochMillis, sanitized.title, sanitized.body, sanitized.redactionCount, NotificationTextRetention.expiresAt(now)))
+            database.notificationRedactedTextDao().insert(NotificationRedactedTextEntity(stored.id, stored.identityDigest ?: event.identityDigest, stored.packageName, stored.occurredAtEpochMillis, sanitized.title, sanitized.body, sanitized.redactionCount, NotificationTextRetention.expiresAt(now)))
         }
     }
 

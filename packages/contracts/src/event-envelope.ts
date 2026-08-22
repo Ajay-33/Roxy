@@ -38,7 +38,7 @@ export const usageSummaryQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(20).default(5),
 }).strict();
 export type UsageSummaryQuery = z.infer<typeof usageSummaryQuerySchema>;
-export const notificationSummaryQuerySchema = z.object({ deviceId: z.string().min(1).max(128), date: localDateSchema, limit: z.coerce.number().int().min(1).max(100).default(50) }).strict();
+export const notificationSummaryQuerySchema = z.object({ deviceId: z.string().min(1).max(128), date: localDateSchema, period: z.enum(["day", "week", "month"]).default("day"), limit: z.coerce.number().int().min(1).max(100).default(50) }).strict();
 export type NotificationSummaryQuery = z.infer<typeof notificationSummaryQuerySchema>;
 
 const notificationPayloadSchema = z.object({
@@ -54,7 +54,7 @@ const eventEnvelopeBaseSchema = z.object({
   payload: z.record(z.unknown()), quality: z.object({ confidence: z.number().min(0).max(1), isDerived: z.boolean() }),
 });
 export const eventEnvelopeV1Schema = eventEnvelopeBaseSchema.superRefine((event, context) => {
-  if (event.type === "notification.posted" || event.type === "notification.removed") {
+  if (event.type === "notification.posted" || event.type === "notification.updated" || event.type === "notification.removed") {
     const parsed = notificationPayloadSchema.safeParse(event.payload);
     if (!parsed.success) context.addIssue({ code: z.ZodIssueCode.custom, message: "Expected metadata-only notification payload", path: ["payload"] });
   }

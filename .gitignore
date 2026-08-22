@@ -9,6 +9,10 @@ local.properties
 
 # Personal and exported data
 data/
+# Android's Room source package is code, not owner data. Keep its Kotlin sources versioned while
+# continuing to ignore all runtime data directories and database files.
+!apps/android/app/src/main/java/com/roxy/app/data/
+!apps/android/app/src/main/java/com/roxy/app/data/*.kt
 exports/
 backups/
 *.sqlite

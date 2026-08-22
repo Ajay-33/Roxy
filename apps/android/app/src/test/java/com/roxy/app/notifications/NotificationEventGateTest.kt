@@ -35,4 +35,15 @@ class NotificationEventGateTest {
         val removed = NotificationEventGate.create(true, allowed, "example.safe", "notification.removed", 10, 12, ZoneId.of("UTC"), "remove", "opaque-key", false)!!
         assertEquals(posted.identityDigest, removed.identityDigest)
     }
+
+    @Test
+    fun `lifecycle classifies one object updates removals and callback replays deterministically`() {
+        assertEquals(NotificationLifecycle.Transition("notification.posted", 10), NotificationLifecycle.transition("notification.posted", 10, 11, null))
+        assertEquals(NotificationLifecycle.Transition("notification.updated", 20), NotificationLifecycle.transition("notification.posted", 10, 20, NotificationLifecycleState("notification.posted", 10)))
+        assertEquals(NotificationLifecycle.Transition("notification.updated", 30), NotificationLifecycle.transition("notification.posted", 10, 30, NotificationLifecycleState("notification.updated", 20)))
+        assertEquals(NotificationLifecycle.Transition("notification.removed", 31), NotificationLifecycle.transition("notification.removed", 10, 31, NotificationLifecycleState("notification.updated", 30)))
+        assertNull(NotificationLifecycle.transition("notification.removed", 10, 31, NotificationLifecycleState("notification.removed", 31)))
+        assertNull(NotificationLifecycle.transition("notification.posted", 10, 30, NotificationLifecycleState("notification.updated", 30)))
+        assertEquals(NotificationLifecycle.Transition("notification.posted", 40), NotificationLifecycle.transition("notification.posted", 40, 41, NotificationLifecycleState("notification.removed", 31)))
+    }
 }

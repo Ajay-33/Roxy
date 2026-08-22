@@ -2,6 +2,17 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { PostgresEventStore } from "./event-store.ts";
 
+test("notification analytics uses observed local dates for requested periods and deterministic bursts", async () => {
+    const store = new PostgresEventStore("postgres://synthetic:synthetic@localhost:5432/synthetic");
+    const calls: Array<{ sql: string; values: unknown[] }> = [];
+    const pool = (store as unknown as { pool: { query: (sql: string, values: unknown[]) => Promise<{ rows: unknown[] }> } }).pool;
+    pool.query = async (sql, values) => { calls.push({ sql, values }); if (sql.includes("FILTER")) return { rows: [{ count: "4", postedCount: "1", updatedCount: "2", removedCount: "1" }] }; if (sql.includes("HAVING")) return { rows: [{ startHour: "9", count: "3" }] }; return { rows: [] }; };
+    const analytics = await store.notificationAnalytics({ deviceId: "synthetic-device", date: "2026-08-19", period: "week", limit: 5 });
+    assert.deepEqual(analytics, { count: 4, postedCount: 1, updatedCount: 2, removedCount: 1, hourly: [], topApps: [], bursts: [{ startHour: 9, count: 3 }], period: "week" });
+    assert.match(calls[0]!.sql, /AT TIME ZONE observed_timezone/); assert.match(calls[0]!.sql, /date - 6/); assert.deepEqual(calls[0]!.values, ["synthetic-device", "2026-08-19", "week"]);
+    await store.close();
+});
+
 test("timeline query filters local date and uses deterministic cursor ordering", async () => {
     const store = new PostgresEventStore("postgres://synthetic:synthetic@localhost:5432/synthetic");
     const calls: Array<{ sql: string; values: unknown[] }> = [];

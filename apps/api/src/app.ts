@@ -87,7 +87,8 @@ export function buildApp(deviceApiKey: string, eventStore: EventStore & Partial<
         if (!eventStore.notificationAnalytics) return reply.code(501).send({ error: "notification_analytics_unavailable" });
         const parsed = notificationSummaryQuerySchema.safeParse(request.query);
         if (!parsed.success) return reply.code(400).send({ error: "invalid_notification_analytics_query" });
-        return eventStore.notificationAnalytics(parsed.data);
+        const analytics = await eventStore.notificationAnalytics(parsed.data);
+        return { ...analytics, completeness: { status: "incomplete", reason: analytics.count === 0 ? "no_notification_activity" : "coverage_not_proven" } };
     });
     app.get("/v1/timeline", async (request, reply) => {
         if (!credentialsMatch(request.headers.authorization, deviceApiKey)) return reply.code(401).send({ error: "unauthorized" });

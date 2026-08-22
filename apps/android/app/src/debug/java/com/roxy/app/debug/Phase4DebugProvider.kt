@@ -9,6 +9,7 @@ import android.net.Uri
 import android.os.Bundle
 import com.roxy.app.data.RoxyDatabase
 import com.roxy.app.data.SyncState
+import com.roxy.app.data.NotificationMetadataEntity
 import com.roxy.app.health.CollectorHealthReader
 import com.roxy.app.notifications.NotificationPackagePolicy
 import com.roxy.app.notifications.NotificationAccess
@@ -46,6 +47,9 @@ class Phase4DebugProvider : ContentProvider() {
             }
             "status" -> Bundle().apply {
                 putInt("notificationMetadataCount", database.notificationMetadataDao().count())
+                putInt("postedCount", database.notificationMetadataDao().countWithKind("notification.posted"))
+                putInt("updatedCount", database.notificationMetadataDao().countWithKind("notification.updated"))
+                putInt("removedCount", database.notificationMetadataDao().countWithKind("notification.removed"))
                 putInt("pendingSyncCount", database.localEventDao().countWithState(SyncState.PENDING))
                 putInt("acknowledgedNotificationCount", database.localEventDao().notificationCountWithState(SyncState.ACKNOWLEDGED))
                 putBoolean("notificationEnabled", store.isEnabled())
@@ -56,8 +60,22 @@ class Phase4DebugProvider : ContentProvider() {
             "post_synthetic" -> {
                 val manager = appContext.getSystemService(NotificationManager::class.java)
                 manager.createNotificationChannel(NotificationChannel("roxy_debug", "Roxy debug", NotificationManager.IMPORTANCE_LOW))
-                manager.notify(404, android.app.Notification.Builder(appContext, "roxy_debug").setSmallIcon(com.roxy.app.R.drawable.ic_roxy).setContentTitle("Synthetic").setContentText("Synthetic").build())
+                manager.notify(404, android.app.Notification.Builder(appContext, "roxy_debug").setSmallIcon(com.roxy.app.R.drawable.ic_roxy).setWhen(System.currentTimeMillis()).setShowWhen(false).setContentTitle("Synthetic").setContentText("Synthetic").build())
                 Bundle().apply { putBoolean("ok", true) }
+            }
+            "remove_synthetic" -> {
+                appContext.getSystemService(NotificationManager::class.java).cancel(404)
+                Bundle().apply { putBoolean("ok", true) }
+            }
+            "record_synthetic_lifecycle" -> {
+                val digest = "0".repeat(64)
+                val rows = listOf(
+                    NotificationMetadataEntity("debug-lifecycle-posted", "notification.posted", 100, 100, "UTC", SHELL_PACKAGE, digest, createdAtEpochMillis = 100),
+                    NotificationMetadataEntity("debug-lifecycle-updated", "notification.posted", 100, 200, "UTC", SHELL_PACKAGE, digest, createdAtEpochMillis = 200),
+                    NotificationMetadataEntity("debug-lifecycle-removed", "notification.removed", 100, 300, "UTC", SHELL_PACKAGE, digest, createdAtEpochMillis = 300),
+                )
+                val accepted = rows.count { database.notificationMetadataDao().insertLifecycle(it) != null }
+                Bundle().apply { putInt("acceptedLifecycleCallbacks", accepted) }
             }
             "notification_summary_status" -> {
                 val pairing = PairingStore(appContext).read()
