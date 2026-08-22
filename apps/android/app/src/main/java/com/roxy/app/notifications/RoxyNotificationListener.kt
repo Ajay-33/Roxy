@@ -6,6 +6,8 @@ import android.service.notification.StatusBarNotification
 import com.roxy.app.data.NotificationMetadataEntity
 import com.roxy.app.data.NotificationRedactedTextEntity
 import com.roxy.app.data.RoxyDatabase
+import com.roxy.app.sync.PairingStore
+import com.roxy.app.sync.SyncScheduler
 import java.security.SecureRandom
 import java.time.ZoneId
 import java.util.concurrent.Executors
@@ -54,7 +56,7 @@ class RoxyNotificationListener : NotificationListenerService() {
             notificationKey = sbn.key,
             isGroupSummary = sbn.notification.flags and Notification.FLAG_GROUP_SUMMARY != 0,
         ) ?: return
-        database.notificationMetadataDao().insert(
+        val inserted = database.notificationMetadataDao().insert(
             NotificationMetadataEntity(
                 id = event.id,
                 eventKind = event.eventKind,
@@ -66,6 +68,12 @@ class RoxyNotificationListener : NotificationListenerService() {
                 createdAtEpochMillis = now,
             ),
         )
+        if (inserted != -1L) {
+            PairingStore(applicationContext).read()?.let { pairing ->
+                NotificationMetadataExporter.queue(database, pairing, event)
+                SyncScheduler.enqueue(applicationContext)
+            }
+        }
         if (NotificationPolicy.policyFor(policyStore.rules(), sbn.packageName) == NotificationPackagePolicy.TEXT_REDACTED) {
             val sanitized = NotificationSanitizer.sanitize(FutureNotificationContent(
                 title = sbn.notification.extras.getCharSequence(Notification.EXTRA_TITLE)?.toString(),

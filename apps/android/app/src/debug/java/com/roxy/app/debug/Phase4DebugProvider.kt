@@ -33,6 +33,7 @@ class Phase4DebugProvider : ContentProvider() {
             "status" -> Bundle().apply {
                 putInt("notificationMetadataCount", database.notificationMetadataDao().count())
                 putInt("pendingSyncCount", database.localEventDao().countWithState(SyncState.PENDING))
+                putInt("acknowledgedNotificationCount", database.localEventDao().notificationCountWithState(SyncState.ACKNOWLEDGED))
                 putBoolean("notificationEnabled", store.isEnabled())
                 putString("syntheticPolicy", NotificationPolicy.policyFor(store.rules(), SYNTHETIC_PACKAGE).name)
                 putBoolean("listenerAccessAllowed", NotificationAccess.isAllowed(appContext))

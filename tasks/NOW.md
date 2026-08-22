@@ -1,3 +1,3 @@
-# Now: T-0407 — Notification metadata server persistence
+# Now: T-0408 — Android notification queue and WorkManager sync
 
-Phase 4 local collection is qualified. T-0407 begins the hosted metadata-only notification pipeline; dashboard integration follows in T-0408–T-0410.
+The hosted metadata API is live. T-0408 wires policy-approved local notification metadata into Roxy's automatic, constrained sync outbox.
